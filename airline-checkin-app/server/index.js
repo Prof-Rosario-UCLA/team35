@@ -13,11 +13,19 @@ app.post("/api/login", (req, res) => {
   res.json({ token: "fake-jwt-token" });
 });
 
-app.get("/api/flights", (req, res) => {
-  res.json([
-    { id: "AB123", destination: "New York", checkedIn: false },
-    { id: "CD456", destination: "Los Angeles", checkedIn: true },
-  ]);
+const { PrismaClient } = require("@prisma/client");
+const prisma = new PrismaClient();
+
+app.get("/api/flights", async (req, res) => {
+  try {
+    const flights = await prisma.flight.findMany({
+      include: { seats: true },
+    });
+    res.json(flights);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Could not retrieve flights" });
+  }
 });
 
 app.listen(1919, () => console.log("Server running on port 1919"));

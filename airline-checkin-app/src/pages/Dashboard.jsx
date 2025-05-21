@@ -1,30 +1,29 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { fetchFlights } from "../utils/api";
 
 export const Dashboard = () => {
+  const [flights, setFlights] = useState([]);
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
-  const mockFlights = [
-    { id: "ABC123", destination: "New York", status: "Checked In" },
-    { id: "XYZ456", destination: "Los Angeles", status: "Not Checked In" },
-  ];
+
+  useEffect(() => {
+    fetchFlights()
+      .then((data) => setFlights(data))
+      .catch((err) => setError(err.message));
+  }, []);
 
   return (
-    <div className="p-4">
-      <h1 className="text-xl font-bold">Your Flights</h1>
+    <div>
+      <h1>Your Flights</h1>
+      {error && <p style={{ color: "red" }}>{error}</p>}
       <ul>
-        {mockFlights.map((flight) => (
-          <li key={flight.id} className="my-2">
-            <div>
-              Flight to {flight.destination} - {flight.status}
-            </div>
-            {flight.status !== "Checked In" && (
-              <button
-                onClick={() => navigate(`/select-seat/${flight.id}`)}
-                className="bg-blue-500 text-white px-4 py-2 mt-2"
-              >
-                Check In & Select Seat
-              </button>
-            )}
+        {flights.map((flight) => (
+          <li key={flight.id}>
+            Flight {flight.code} to {flight.destination} —{" "}
+            <button onClick={() => navigate(`/select-seat/${flight.id}`)}>
+              Check in
+            </button>
           </li>
         ))}
       </ul>
