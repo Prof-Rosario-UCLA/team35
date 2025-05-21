@@ -1,0 +1,54 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+enum Role {
+  PASSENGER
+  ADMIN
+}
+
+model User {
+  id              String   @id @default(uuid())
+  email           String   @unique
+  password        String
+  name            String
+  role            Role     @default(PASSENGER)
+  flights         Flight[] @relation("Bookings")
+  uploadedFlights Flight[] @relation("UploadedFlights")
+  seatSelections  Seat[]
+  wantsPushAlerts Boolean  @default(true)
+  createdAt       DateTime @default(now())
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Flight {
+  id           String   @id @default(cuid())
+  code         String   @unique
+  destination  String
+  departure    DateTime
+  uploadedBy   User?    @relation("UploadedFlights", fields: [uploadedById], references: [id])
+  uploadedById String?
+  seats        Seat[]
+  users        User[]   @relation("Bookings")
+  createdAt    DateTime @default(now())
+}
+
+model Seat {
+  id       String  @id @default(cuid())
+  label    String
+  isTaken  Boolean @default(false)
+  userId   String?
+  flightId String
+  user     User?   @relation(fields: [userId], references: [id])
+  flight   Flight  @relation(fields: [flightId], references: [id])
+}
