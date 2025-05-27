@@ -1,32 +1,46 @@
-import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { fetchFlights } from "../utils/api";
+import { useState } from "react";
+import NavBar from "../components/NavBar";
 
-export const Dashboard = () => {
-  const [flights, setFlights] = useState([]);
-  const [error, setError] = useState(null);
+const MOCK_FLIGHTS = [
+  { id: 42, code: "UA 204", destination: "JFK", time: "10 : 45 AM" },
+];
+
+export default function Dashboard() {
+  const [flights] = useState(MOCK_FLIGHTS);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    fetchFlights()
-      .then((data) => setFlights(data))
-      .catch((err) => setError(err.message));
-  }, []);
-
   return (
-    <div>
-      <h1>Your Flights</h1>
-      {error && <p style={{ color: "red" }}>{error}</p>}
-      <ul>
-        {flights.map((flight) => (
-          <li key={flight.id}>
-            Flight {flight.code} to {flight.destination} —{" "}
-            <button onClick={() => navigate(`/select-seat/${flight.id}`)}>
-              Check in
-            </button>
-          </li>
-        ))}
-      </ul>
-    </div>
+    <>
+      <NavBar />
+      <main className="container">
+        <h2 style={{ fontSize: "1.5rem", fontWeight: 700, margin: "1.5rem 0" }}>
+          Your upcoming flights
+        </h2>
+
+        {flights.length === 0 ? (
+          <p>No flights found.</p>
+        ) : (
+          <ul style={{ display: "grid", gap: "1rem" }}>
+            {flights.map((f) => (
+              <li key={f.id} className="card">
+                <div>
+                  <p style={{ fontWeight: 600 }}>{f.code}</p>
+                  <p style={{ fontSize: "0.875rem", color: "#6b7280" }}>
+                    To {f.destination} • {f.time}
+                  </p>
+                </div>
+                <button
+                  className="btn"
+                  onClick={() => navigate(`/select-seat/${f.id}`)}
+                >
+                  Check in
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </main>
+    </>
   );
-};
+}

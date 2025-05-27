@@ -1,29 +1,41 @@
-import React, { useState } from "react";
 import { useParams } from "react-router-dom";
+import { useState } from "react";
+import NavBar from "../components/NavBar";
 
-export const SeatSelection = () => {
+export default function SeatSelection() {
   const { flightId } = useParams();
-  const [selectedSeat, setSelectedSeat] = useState(null);
-  const seats = ["1A", "1B", "1C", "2A", "2B", "2C"];
+  const [selected, setSelected] = useState(null);
+
+  const seats = Array.from({ length: 30 }, (_, i) =>
+    (i + 1).toString().padStart(2, "0")
+  );
 
   return (
-    <div>
-      <h1>Select a Seat for Flight {flightId}</h1>
-      <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
-        {seats.map((seat) => (
-          <button
-            key={seat}
-            onClick={() => setSelectedSeat(seat)}
-            style={{
-              padding: "1em",
-              backgroundColor: selectedSeat === seat ? "green" : "lightgray",
-            }}
-          >
-            {seat}
-          </button>
-        ))}
-      </div>
-      {selectedSeat && <p>You selected: {selectedSeat}</p>}
-    </div>
+    <>
+      <NavBar />
+      <main className="container">
+        <h2 style={{ fontSize: "1.5rem", fontWeight: 700, margin: "1.5rem 0" }}>
+          Select a seat — flight {flightId}
+        </h2>
+
+        <div className="seat-grid">
+          {seats.map((s) => (
+            <button
+              key={s}
+              onClick={() => setSelected(s)}
+              className={`seat ${selected === s ? "selected" : ""}`}
+            >
+              {s}
+            </button>
+          ))}
+        </div>
+
+        {selected && (
+          <p style={{ marginTop: "1.5rem", textAlign: "center" }}>
+            You selected seat <strong>{selected}</strong>
+          </p>
+        )}
+      </main>
+    </>
   );
-};
+}
