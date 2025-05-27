@@ -1,0 +1,52 @@
+
+
+
+
+services:
+
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+
+  # Cache service for Redis
+  # This service is used to cache flight bookings
+  redis-servce:
+    build:
+      context: ./redis
+      dockerfile: ./Dockerfile
+    ports:
+      - "5000:5000"
+    environment:
+      REDIS_URL: "redis://redis:6379/0"
+    depends_on:
+      - redis
+
+
+  # Backend service for handling flight bookings
+  # This service is responsible for managing static flight data
+  backend:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      REDIS_URL: "redis://redis:6379/0"
+      NUM_FLIGHTS: "10"
+      SEED: "42"
+    depends_on:
+      - redis
+
+  # Frontend service for the user interface
+  # This service serves the React application
+  frontend:
+      build:
+        context: ./frontend
+        dockerfile: ./Dockerfile
+      ports:
+        - "3000:80"       # map host 3000 → container 80
+      environment:
+        REACT_APP_API_URL: "http://backend:4000"
+      depends_on:
+        - backend
