@@ -1,21 +1,37 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import "./index.css";
 
 import Home from "./pages/Home";
 import Dashboard from "./pages/Dashboard";
 import SeatSelection from "./pages/SeatSelection";
+import Login from "./pages/Login";
+import AuthProvider, { AuthContext } from "./AuthContext";
+import Admin from "./pages/Admin";
+
+function PrivateRoute({ element }) {
+  const { token } = React.useContext(AuthContext);
+  return token ? element : <Navigate to="/login" replace />;
+}
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/select-seat/:flightId" element={<SeatSelection />} />
-        <Route path="*" element={<p style={{ padding: "2rem", textAlign: "center" }}>404</p>} />
-      </Routes>
-    </BrowserRouter>
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/dashboard" element={<PrivateRoute element={<Dashboard />} />} />
+          <Route
+            path="/select-seat/:flightId"
+            element={<PrivateRoute element={<SeatSelection />} />}
+          />
+          <Route path="/admin" element={<PrivateRoute element={<Admin />} />} />
+          <Route path="*" element={<p className="container">404</p>} />
+          
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   </React.StrictMode>
 );
