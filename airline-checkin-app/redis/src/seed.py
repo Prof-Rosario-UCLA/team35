@@ -1,6 +1,6 @@
 # app/seed.py
 import os, uuid, random
-import reddis
+import redis
 from flight_cache import *
 
 # connect

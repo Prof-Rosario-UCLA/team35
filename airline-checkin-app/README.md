@@ -1,70 +1,109 @@
-# Getting Started with Create React App
+# Airline Check-In App
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A we app for managing flight seat bookings, using Redis for caching, FastAPI for the backend API, and React + Nginx for the frontend UI.
 
-## Available Scripts
+## 🧱 Components
+- **Redis Service (API)**: FastAPI service that:
+  - Seeds Redis with dummy flight data
+  - Exposes endpoints to initialize flights, book seats, and check bookings. In **/redis** folder. 
+- **Frontend**: React app served by Nginx to interact with the booking API
+- **Backend**: Not implemented yet. Manages requests, acts as proxy for authentication,security layer, and complex rules, load balancing etc.In the **/server** folder. 
+-- **Firestor**: Not implemented yet. Stores all other data
 
-In the project directory, you can run:
+## 🚀 Getting Started
 
-### `npm start`
+### Prerequisites
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+- Docker + Docker Compose installed
+- Ports 6379 (Redis), 5000 (Redis-API), and 3000 (Frontend) available
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+### 1. Build and Start Services
 
-### `npm test`
+```bash
+docker compose up --build
+```
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### 2. Access the Application
 
-### `npm run build`
+- **Redis Service (API)**: [http://localhost:5000](http://localhost:5000)
+- **Frontend UI**: [http://localhost:3000](http://localhost:3000)
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+---
+## Cleanup
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+Stop all containers:
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+```bash
+docker compose down
+```
 
-### `npm run eject`
+Remove images and volumes for a fresh reset:
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+```bash
+docker compose down --rmi all --volumes
+```
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+---
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+## Notes
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+- Redis Service connects to Redis via `REDIS_URL=redis://redis:6379/0`
+- Frontend connects to redis and backend via:
+     REACT_APP_API_URL: "http://backend:4000" # API URL for the frontend to communicate with the backend
+     Redis_Service_URL: "http://redis-service:5000" # API URL For redis service
+- Make sure the container names match your `docker-compose.yml` if renaming
+- The API endpoints still need to be added.
+- You can edit how your specific project is composed in your own personal docker file, and in the docker compose file.
 
-## Learn More
+---
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+PING ME IF YOU HAVE ANY QUESTIONS
 
-To learn React, check out the [React documentation](https://reactjs.org/).
 
-### Code Splitting
+# APIS:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+## API Endpoints For Redis
+(These may not all work yet)
+### Initialize a Flight
 
-### Analyzing the Bundle Size
+```bash
+curl -X POST http://localhost:5000/flights/ABC123/init \
+     -H "Content-Type: application/json" \
+     -d '{"all_seats":["A1","A2","A3","A4","A5"]}'
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+### Get Free Seats
 
-### Making a Progressive Web App
+```bash
+curl http://localhost:5000/flights/ABC123/free
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+### Book a Seat
 
-### Advanced Configuration
+```bash
+curl -X POST http://localhost:5000/flights/ABC123/book \
+     -H "Content-Type: application/json" \
+     -d '{"seat":"A3","client_id":"user42"}'
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+### Get a Booking
 
-### Deployment
+```bash
+curl http://localhost:5000/flights/ABC123/booking/A3
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+---
 
-### `npm run build` fails to minify
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+# API Endpoints for Backend
+TODO
+
+# API Endpoints for Firebase
+TODO
+
+# TODOS:
+- Implement Protobuff endpoints and finalize data 
+- Complete firebase endpoints
+- Complete reddis endpoints
+- (IMPORTANT)IMPLEMENT UNIT TESTING
+- (IMPORTANT)IMPLEMENT API TESTING WITH POSTMAN

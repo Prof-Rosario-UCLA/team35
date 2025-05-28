@@ -2,8 +2,7 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import os
 import redis
-from flight_cache import *
-from redis_client import *
+from .flight_cache import init_flight, get_free_seats, book_seat, get_booking
 
 # Redis connection
 r = redis.from_url(os.getenv("REDIS_URL", "redis://localhost:6379/0"))
