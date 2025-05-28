@@ -54,7 +54,8 @@ docker compose down --rmi all --volumes
 - Make sure the container names match your `docker-compose.yml` if renaming
 - The API endpoints still need to be added.
 - You can edit how your specific project is composed in your own personal docker file, and in the docker compose file.
-
+- If you want to see the api and data schema of a specific endpoint, if it's using fastAPI(which im using with reddit) just go to thate endpoint(i.e localhost:5000)/docs. i.e 
+go to localhost:5000/docs to check out docs!
 ---
 
 PING ME IF YOU HAVE ANY QUESTIONS
