@@ -27,6 +27,8 @@ firebase-debug.log
 firebase-debug.*.log
 .firebaserc
 firebase.json
+# firebase service account key (do not commit this file)
+serviceAccountKey.json 
 
 npm-debug.log*
 yarn-debug.log*
