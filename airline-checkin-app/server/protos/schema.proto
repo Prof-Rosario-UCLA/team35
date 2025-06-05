@@ -1,0 +1,79 @@
+syntax = "proto3";
+
+package airline;
+
+// Enum for user roles
+enum UserRole {
+  PASSENGER = 0;
+  ADMIN     = 1;
+}
+
+// A single Seat within a Flight
+message Seat {
+  // unique identifier (you can store the same CUID string you used in Prisma, or generate new ones)
+  string id       = 1;
+  // e.g. "12A", "3B"
+  string label    = 2;
+  // whether this seat is taken
+  bool is_taken   = 3;
+  // If taken, the user ID (otherwise empty)
+  string user_id  = 4;
+  // The Flight ID this seat belongs to
+  string flight_id = 5;
+}
+
+// A Flight record
+message Flight {
+  // unique flight identifier (e.g. CUID or GUID)
+  string id            = 1;
+  // e.g. "AB123"
+  string code          = 2;
+  // e.g. "Los Angeles"
+  string destination   = 3;
+  // departure timestamp, e.g. "2025-06-01T08:00:00Z"
+  string departure     = 4;
+  // UUID of the admin user who uploaded/created this manifest
+  string uploaded_by   = 5;
+
+  // Repeated seats for this flight
+  repeated Seat seats  = 6;
+
+  // Repeated user IDs (passengers) booked on this flight
+  repeated string user_ids = 7;
+}
+
+// A User record
+message User {
+  // unique identifier (e.g. UUID)
+  string id          = 1;
+  // email address
+  string email       = 2;
+  // hashed password
+  string password    = 3;
+  // display name
+  string name        = 4;
+  // USER role: PASSENGER or ADMIN
+  UserRole role      = 5;
+  // whether they want push alerts
+  bool wants_push    = 6;
+  // ISO timestamp when created
+  string created_at  = 7;
+
+  // Flight IDs that this user is booked on (for passengers),
+  // or Flight IDs uploaded by this user (for admins).
+  repeated string flight_ids = 8;
+
+  // Seat IDs this user has selected (optional)
+  repeated string seat_ids   = 9;
+}
+
+// For listing multiple objects in a single RPC
+message UserList {
+  repeated User users = 1;
+}
+message FlightList {
+  repeated Flight flights = 1;
+}
+message SeatList {
+  repeated Seat seats = 1;
+}

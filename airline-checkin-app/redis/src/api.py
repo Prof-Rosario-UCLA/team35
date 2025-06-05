@@ -4,10 +4,10 @@ import os
 import redis
 from .flight_cache import init_flight, get_free_seats, book_seat, get_booking
 
-# Redis connection
+# # Redis connection
 r = redis.from_url(os.getenv("REDIS_URL", "redis://localhost:6379/0"))
 
-# FastAPI app
+# # FastAPI app
 app = FastAPI()
 
 # ----- Data Models ----- temp until base protobuff

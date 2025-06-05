@@ -1,0 +1,6 @@
+docker build -t airline-frontend .
+
+docker run -d \
+  --name airline-frontend-container \
+  -p 80:80 \
+  airline-frontend
