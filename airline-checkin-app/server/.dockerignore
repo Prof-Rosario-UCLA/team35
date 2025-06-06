@@ -1,7 +1,23 @@
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-.env
+# Ignore node_modules everywhere
+**/node_modules
+
+# Ignore frontend build artifacts
+**/frontend/dist
+
+# Ignore git files
 .git
 .gitignore
+**/build
+
+
+# Ignore IDE files
+.idea
+.vscode
+
+# Misc
+*.lnk
+*.DS_Store
+npm-debug.log*
+*.swp
+*.tmp
+*.bak

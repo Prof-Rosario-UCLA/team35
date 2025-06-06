@@ -10,7 +10,7 @@ echo "→ Starting gRPC server…"
 # For example, if you put your FlightCacheServicer/serve() into src/grpc_server.py:
 
 export PYTHONPATH=/usr/src/generated:$PYTHONPATH
-
+GRPC_VERBOSITY=DEBUG GRPC_TRACE=all 
 cd src || exit 1
 # Start the gRPC server in the background
 exec python api.py 

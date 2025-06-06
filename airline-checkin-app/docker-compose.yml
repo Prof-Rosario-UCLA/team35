@@ -17,6 +17,7 @@ services:
       dockerfile: redis/Dockerfile
     ports:
       - "5000:5000"
+    container_name: redis-service
     environment:
       REDIS_URL: "redis://redis:6379/0"
     depends_on:
@@ -24,19 +25,20 @@ services:
 
 
   # # Backend service for handling flight bookings
-  # # This service is responsible for managing static flight data
-  # backend:
-  #   build:
-  #     context: ./server
-  #     dockerfile: Dockerfile
-  #   ports:
-  #     - "8000:8000"
-  #   environment:
-  #     REDIS_URL: "redis://redis:6379/0"
-  #     NUM_FLIGHTS: "10"
-  #     SEED: "42"
-  #   depends_on:
-  #     - redis
+  # # This service is responsible for managing static flight data, and proxies the redis db
+  backend:
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+    ports:
+      - "1919:1919"   # map host 1919 → container 1919
+    container_name: backend
+    environment:
+      redis_service: "http://redis-service:5000" # URL for the Redis service
+      SEED: "42"
+    depends_on:
+      - redis
+      - redis-service
 
   # Frontend service for the user interface
   # This service serves the React application
@@ -47,22 +49,21 @@ services:
       ports:
         - "3000:80"       # map host 3000 → container 80
       environment:
-        #REACT_APP_API_URL: "http://backend:4000" # API URL for the frontend to communicate with the backend
-        Redis_Service_URL: "http://redis-service:5000" # URL for the frontend to communicate with the Redis service
-      depends_on:
-        - redis-service
-        # - backend
+        REACT_APP_API_URL: "http://backend:1919" # API URL for the frontend to communicate with the backend
+        redis_service: "http://redis-service:5000" # URL for the frontend to communicate with the Redis service
+      # depends_on:
+      #   - backend
 
   # # Test service for running tests
-  tests:
-    build:
-      context: .
-      dockerfile: redis/Dockerfile.test
-    # Do NOT use network_mode: "host" here.
-    # Instead, rely on host.docker.internal to reach the host machine.
-    environment:
-      REDIS_URL: "redis://host.docker.internal:6379/0"
-      GRPC_TARGET: "host.docker.internal:5000"
-    depends_on:
-      - redis-service
+  # tests:
+  #   build:
+  #     context: .
+  #     dockerfile: redis/Dockerfile.test
+  #   # Do NOT use network_mode: "host" here.
+  #   # Instead, rely on host.docker.internal to reach the host machine.
+  #   environment:
+  #     REDIS_URL: "redis://host.docker.internal:6379/0"
+  #     GRPC_TARGET: "host.docker.internal:5000"
+  #   depends_on:
+  #     - redis-service
     

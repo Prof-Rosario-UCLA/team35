@@ -42,10 +42,12 @@ app.locals.db = db;
 const flightsRouter = require("./routes/flights");
 const usersRouter = require("./routes/users");
 const checkinRouter = require("./routes/checkin");
+const redisRouter = require("./routes/redis");
 
 app.use("/flights", flightsRouter);
 app.use("/users", usersRouter);
 app.use("/checkin", checkinRouter);
+app.use("/redis", redisRouter);
 
 app.get("/test", async (req, res) => {
   const snapshot = await db.collection("flights").get();

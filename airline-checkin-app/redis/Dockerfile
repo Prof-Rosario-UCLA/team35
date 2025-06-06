@@ -37,6 +37,7 @@ RUN chmod +x entrypoint.sh
 
 # 11) Expose whichever port your gRPC server uses
 EXPOSE 5000
+# RUN GRPC_VERBOSITY=DEBUG GRPC_TRACE=all python api.py
 
 # 12) Run the entrypoint (which should start your gRPC server in the foreground)
 ENTRYPOINT ["./entrypoint.sh"]

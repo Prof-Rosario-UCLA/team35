@@ -5,3 +5,35 @@ __pycache__/
 .env
 .git
 .gitignore
+.pytest_cache/
+build/
+node_modules
+server/node_modules
+.DS_Store
+npm-debug.log
+archive/
+archive/tar
+npm-debug.log*
+yarn-error.log*     
+# Ignore Python cache files
+# Ignore node_modules everywhere
+**/node_modules
+
+# Ignore frontend build artifacts
+frontend/dist
+
+# Ignore git files
+.git
+.gitignore
+
+# Ignore IDE files
+.idea
+.vscode
+
+# Misc
+*.lnk
+*.DS_Store
+npm-debug.log*
+*.swp
+*.tmp
+*.bak

@@ -4,26 +4,21 @@ FROM node:18-alpine AS base
 WORKDIR /usr/src/app
 
 # Install production dependencies only
-COPY package*.json ./
+COPY server/package*.json ./
 RUN npm ci --only=production
 
-# ─── Step 2: Generate Prisma client ────────────────────────────────────────────────
-# Copy your Prisma schema & generate the client
-COPY prisma ./prisma
-RUN npx prisma generate
+COPY server/serviceAccountKey.json ./
+
 
 # ─── Step 3: Copy the rest of your server code ─────────────────────────────────────
-COPY . .
+COPY server .
+
+# ─── Step 3.5: Copy the ProtoBuff ───────────────────────────────────
+COPY protos/ protos
 
 # ─── Step 4: Expose & startup ──────────────────────────────────────────────────────
-EXPOSE 4000
+EXPOSE 1919
 
-# On container start:
-#   1) run any pending migrations (optional in dev)
-#   2) seed dummy flights
-#   3) start your Express server
-ENTRYPOINT ["sh", "-c", "\
-  npx prisma migrate deploy && \
-  node prisma/seed.js && \
-  node index.js \
-"]
+# 5) Start the server
+#    Replace `index.js` with the entry point of your app if it’s different.
+ENTRYPOINT ["node", "index.js"]
