@@ -3,7 +3,7 @@
 
 
 services:
-
+  
   redis:
     image: redis:7
     ports:
@@ -13,8 +13,8 @@ services:
   # This service is used to cache flight bookings
   redis-service:
     build:
-      context: ./redis
-      dockerfile: ./Dockerfile
+      context: .
+      dockerfile: redis/Dockerfile
     ports:
       - "5000:5000"
     environment:
@@ -52,3 +52,17 @@ services:
       depends_on:
         - redis-service
         # - backend
+
+  # # Test service for running tests
+  tests:
+    build:
+      context: .
+      dockerfile: redis/Dockerfile.test
+    # Do NOT use network_mode: "host" here.
+    # Instead, rely on host.docker.internal to reach the host machine.
+    environment:
+      REDIS_URL: "redis://host.docker.internal:6379/0"
+      GRPC_TARGET: "host.docker.internal:5000"
+    depends_on:
+      - redis-service
+    

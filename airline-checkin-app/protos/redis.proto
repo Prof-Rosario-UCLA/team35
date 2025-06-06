@@ -1,0 +1,93 @@
+// redis/protos/schema.proto
+syntax = "proto3";
+
+package flightcache;
+
+import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";  // for StringValue
+import "common.proto";  // Assuming common.proto contains shared types like Seat, Flight, User
+// ————— Messages for POST /flights/{flight_id}/init —————
+
+// InitFlightRequest carries the list of all seat labels that should be considered “free”
+// when initializing a flight.
+message InitFlightRequest {
+  // The entire list of seat identifiers for this flight (e.g. ["1A","1B","1C", …]).
+  repeated string all_seats = 1;
+  // The flight_id to which these seats belong.
+  string flight_id = 2;
+}
+
+// Server responds with empty content (HTTP 204) on success, so no explicit response message
+// is needed here. If you want an empty placeholder, you can define:
+//
+// message Empty {} 
+//
+//
+// ————— Messages for GET /flights/{flight_id}/free —————
+
+
+message GetFreeSeatsRequest {
+  // The flight_id to query for free seats.
+  string flight_id = 1;
+}
+
+// FreeSeatsResponse wraps a repeated string of free‐seat labels.
+message GetFreeSeatsResponse {
+  repeated string free_seats = 1;
+}
+
+// ————— Messages for POST /flights/{flight_id}/book —————
+
+// BookSeatRequest asks the backend to book a single seat for a client.
+message BookSeatRequest {
+  // The seat label to book (e.g. "12C").
+  string seat = 1;
+  // The client‐ID (string) of whoever is booking.
+  string client_id = 2;
+  // The flight_id to which this seat belongs.
+  string flight_id = 3;
+}
+
+// BookSeatResponse indicates whether the booking succeeded or failed.
+message BookSeatResponse {
+  // True if the seat was successfully booked. If cannot be booked (e.g. already taken), this is false.
+  bool booked = 1;
+  
+}
+
+
+// ————— Messages for GET /flights/{flight_id}/booking/{seat} —————
+
+// GetBookingResponse returns the client‐ID who owns that seat. If the seat
+// was not booked, the HTTP handler returns a 404 instead of this payload.
+message GetBookingResponse {
+  // The client_id currently holding this seat (e.g. "client123").
+  string client_id = 1;
+  
+}
+
+message GetBookingRequest {
+  // The flight_id to query for the booking.
+  string flight_id = 1;
+
+  // The seat label to query for the booking (e.g. "12C").
+  string seat = 2;
+}
+
+// ───────────────────────────────────────────────────────
+// Service definition (new)
+// ───────────────────────────────────────────────────────
+service FlightCache {
+  // Initialize (or re‐initialize) a flight’s seats.  
+  // On success, returns empty (equivalent to HTTP 204).  
+  rpc InitFlight(InitFlightRequest) returns (google.protobuf.Empty);
+
+  // Return the list of free seats for a given flight_id.  
+  rpc GetFreeSeats(GetFreeSeatsRequest) returns (GetFreeSeatsResponse);
+
+  // Attempt to book a seat. If `booked == false`, treat it as a conflict.  
+  rpc BookSeat(BookSeatRequest) returns (BookSeatResponse);
+
+  // Return the client_id who holds that seat; if not found, return NOT_FOUND.  
+  rpc GetBooking(GetBookingRequest) returns (GetBookingResponse);
+}

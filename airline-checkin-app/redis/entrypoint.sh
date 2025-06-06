@@ -5,6 +5,12 @@ set -e
 echo "→ Running Redis seed…"
 python src/seed.py
 
-# 2. Exec the main process (Uvicorn)
-echo "→ Starting API server…"
-exec uvicorn src.api:app --host 0.0.0.0 --port 5000
+echo "→ Starting gRPC server…"
+# Adjust this path if your gRPC server entry‐point is in a different file.
+# For example, if you put your FlightCacheServicer/serve() into src/grpc_server.py:
+
+export PYTHONPATH=/usr/src/generated:$PYTHONPATH
+
+cd src || exit 1
+# Start the gRPC server in the background
+exec python api.py 

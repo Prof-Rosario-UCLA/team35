@@ -1,47 +1,65 @@
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
-import os
-import redis
-from .flight_cache import init_flight, get_free_seats, book_seat, get_booking
+import grpc
+from concurrent import futures
 
-# # Redis connection
-r = redis.from_url(os.getenv("REDIS_URL", "redis://localhost:6379/0"))
+# Import reflection
+from grpc_reflection.v1alpha import reflection
 
-# # FastAPI app
-app = FastAPI()
+from google.protobuf import empty_pb2, wrappers_pb2
+from generated import redis_pb2, redis_pb2_grpc
+import flight_cache
 
-# ----- Data Models ----- temp until base protobuff
-class InitFlightRequest(BaseModel):
-    all_seats: list[str]
+class FlightCacheServicer(redis_pb2_grpc.FlightCacheServicer):
+    # … your RPC implementations …
+    def InitFlight(self, request, context):
+        flight_id = request.flight_id
+        seat_list = list(request.all_seats)
+        try:
+            flight_cache.init_flight(flight_id, seat_list)
+        except Exception as e:
+            context.abort(grpc.StatusCode.INTERNAL, f"InitFlight failed: {e}")
+        return empty_pb2.Empty()
 
-class BookSeatRequest(BaseModel):
-    seat: str
-    client_id: str
+    def GetFreeSeats(self, request, context):
+        flight_id = request.flight_id
+        free_list = flight_cache.get_free_seats(flight_id)
+        if free_list is None:
+            context.abort(grpc.StatusCode.NOT_FOUND, "Flight not found")
+        resp = redis_pb2.GetFreeSeatsResponse()
+        resp.free_seats.extend(free_list)
+        return resp
 
-# ----- API Endpoints -----
-@app.post("/flights/{flight_id}/init", status_code=204)
-def init_flight_endpoint(flight_id: str, req: InitFlightRequest):
-    """Initialize a flight's seats."""
-    init_flight(flight_id, req.all_seats)
-    return None
+    def BookSeat(self, request, context):
+        success = flight_cache.book_seat(request.flight_id, request.seat, request.client_id)
+        if not success:
+            context.abort(grpc.StatusCode.ALREADY_EXISTS, "Seat already booked or invalid.")
+        return redis_pb2.BookSeatResponse(booked=True)
 
-@app.get("/flights/{flight_id}/free")
-def free_seats_endpoint(flight_id: str):
-    """Get list of free seats for a flight."""
-    return {"free_seats": get_free_seats(flight_id)}
+    def GetBooking(self, request, context):
+        flight_id = request.flight_id
+        seat = request.seat
+        client = flight_cache.get_booking(flight_id, seat)
+        if client is None:
+            context.abort(grpc.StatusCode.NOT_FOUND, "Seat not booked or flight not found")
+        return redis_pb2.GetBookingResponse(client_id=client)
 
-@app.post("/flights/{flight_id}/book")
-def book_seat_endpoint(flight_id: str, req: BookSeatRequest):
-    """Attempt to book a seat for a client."""
-    success = book_seat(flight_id, req.seat, req.client_id)
-    if not success:
-        raise HTTPException(status_code=409, detail="Seat already booked or invalid.")
-    return {"booked": True}
 
-@app.get("/flights/{flight_id}/booking/{seat}")
-def get_booking_endpoint(flight_id: str, seat: str):
-    """Get client ID for a booked seat, or 404 if unbooked."""
-    client = get_booking(flight_id, seat)
-    if client is None:
-        raise HTTPException(status_code=404, detail="Seat is not booked.")
-    return {"client_id": client}
+def serve():
+    server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
+    redis_pb2_grpc.add_FlightCacheServicer_to_server(FlightCacheServicer(), server)
+
+    # Enable reflection for the FlightCache service
+    SERVICE_NAMES = (
+        redis_pb2.DESCRIPTOR.services_by_name['FlightCache'].full_name,
+        reflection.SERVICE_NAME,
+    )
+    reflection.enable_server_reflection(SERVICE_NAMES, server)
+
+    port = "5000"
+    server.add_insecure_port(f"[::]:{port}")
+    print(f"Starting gRPC server on port {port} …")
+    server.start()
+    server.wait_for_termination()
+
+
+if __name__ == "__main__":
+    serve()
