@@ -9,19 +9,27 @@
 import { useContext } from "react";
 import { AuthContext } from "../AuthContext";
 
-/** Hook that returns a fetch wrapper with JWT attached */
 export function useApi() {
-  const { token } = useContext(AuthContext);
+  const { token, logout } = useContext(AuthContext);
 
-  const req = (url, options = {}) =>
-    fetch(url, {
-      ...options,
+  const req = async (url, opts = {}) => {
+    const res = await fetch(url, {
+      credentials: "include",                   // send / receive cookies
+      ...opts,
       headers: {
         "Content-Type": "application/json",
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        ...options.headers,
+        ...opts.headers,
       },
-    }).then((r) => (r.ok ? r.json() : Promise.reject(r)));
+    });
+
+    if (res.status === 401) {                  // token expired or missing
+      logout();
+      throw new Error("Unauthorised");
+    }
+    if (!res.ok) throw await res.json();       // bubble up backend error JSON
+    return res.status === 204 ? null : res.json();
+  };
 
   return { req };
 }

@@ -34,14 +34,19 @@ export default function Login() {
   e.preventDefault();
   setError("");
 
-  // MOCK LOGIN LOGIC
-  if (bookingId === "1" && lastName.toLowerCase() === "1") {
-    // Fake JWT token for testing
-    const fakeToken = "mock-jwt-token";
-    setToken(fakeToken);
+  try {
+    const res = await fetch("/api/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",                        // receive jwt cookie
+      body: JSON.stringify({ bookingId, lastName }),
+    });
+    if (!res.ok) throw await res.json();
+    const { token } = await res.json();              // server still echoes token
+    setToken(token);
     navigate("/dashboard");
-  } else {
-    setError("Invalid booking ID or last name");
+  } catch (err) {
+    setError(err.error || "Login failed");
   }
 };
 

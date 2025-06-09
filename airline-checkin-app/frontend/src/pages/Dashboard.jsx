@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import NavBar from "../components/NavBar";
+import { useApi } from "../utils/api";
 
 const MOCK_FLIGHTS = [
   { id: 42, code: "UA 204", destination: "JFK", time: "10 : 45 AM" },
@@ -9,8 +10,20 @@ const MOCK_FLIGHTS = [
 ];
 
 export default function Dashboard() {
-  const [flights] = useState(MOCK_FLIGHTS);
+  const [flights, setFlights] = useState([]);
+  const [error, setError] = useState("");
   const navigate = useNavigate();
+  const { req } = useApi();
+
+  useEffect(() => {
+    req("/flights")
+      .then(setFlights)
+      .catch((e) =>
+        setError(e.error || "Failed to load flights. Please try again.")
+    );
+  }, []);
+
+    
 
   return (
     <>

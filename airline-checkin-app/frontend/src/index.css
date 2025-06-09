@@ -1,4 +1,4 @@
-/* ---------- base / reset ---------- */
+/*   base / reset   */
 *,
 *::before,
 *::after { box-sizing: border-box; }
@@ -11,7 +11,7 @@ body {
   color:#1f2937;
 }
 
-/* ---------- utilities ---------- */
+/*   utilities   */
 .container { max-width:960px;margin:0 auto;padding:1rem; }
 .btn {
   display:inline-block;padding:.55rem 1rem;background:#2563eb;color:#fff;
@@ -19,19 +19,19 @@ body {
 }
 .btn:hover{background:#1e4ed8}
 
-/* ---------- NavBar ---------- */
+/*   NavBar   */
 header { background:#fff;border-bottom:1px solid #e5e7eb; }
 nav a { padding:.75rem 1rem;color:#4b5563;text-decoration:none; }
 nav a.active { color:#2563eb;font-weight:700; }
 
-/* ---------- cards & messages ---------- */
+/*   cards & messages   */
 .card {
   background:#fff;border-radius:.375rem;padding:1rem;
   display:flex;justify-content:space-between;align-items:center;
   box-shadow:0 1px 2px rgb(0 0 0 / .05);
 }
 
-/* ---------- seat map ---------- */
+/*   seat map   */
 .seat-grid {
   display:grid;gap:10px;justify-content:center;
   grid-template-columns:repeat(6,60px);
@@ -46,7 +46,7 @@ nav a.active { color:#2563eb;font-weight:700; }
 .seat.occupied{background:#9ca3af;cursor:not-allowed}
 .seat.selected{background:#10b981;color:#fff;border-color:#059669}
 
-/* ---------- passenger token ---------- */
+/*   passenger token   */
 .passenger {
   width:80px;height:80px;background:#fbbf24;border-radius:50%;
   display:flex;align-items:center;justify-content:center;font-size:2rem;
@@ -54,3 +54,5 @@ nav a.active { color:#2563eb;font-weight:700; }
 }
 .passenger.dragging { opacity:.5; }
 
+html,body { height:100vh; margin:0; overflow:hidden; }
+main      { height:calc(100vh - 60px); overflow:auto; }

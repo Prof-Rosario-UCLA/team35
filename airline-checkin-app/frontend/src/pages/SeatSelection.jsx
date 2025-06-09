@@ -16,10 +16,12 @@ export default function SeatSelection() {
 
   /* --- load occupied seats from backend --- */
   useEffect(() => {
-    req(`/api/seats?flight=${flightId}`)
-      .then((data) => setOccupied(data)) // data = ["2C","5A",...]
-      .catch(() => setOccupied([]));
-  }, [flightId]);
+  req(`/flights/${flightId}/seats`)
+    .then((data) =>
+      setOccupied(data.filter((s) => !s.available).map((s) => s.id))
+    )
+    .catch(console.error);
+}, [flightId]);
 
   /* --- drag handlers --- */
   const onDragStart = (e) => {
@@ -28,12 +30,19 @@ export default function SeatSelection() {
   };
   const onDragEnd = () => setDragging(false);
 
-  const onDropSeat = (seatId) => (e) => {
-    e.preventDefault();
+  const onDropSeat = (seatId) => async (e) => {
+  e.preventDefault();
+  try {
+    await req(`/flights/${flightId}/seats/reserve`, {
+      method: "POST",
+      body: JSON.stringify({ uid: "demoUser", seatNumber: seatId }),
+    });
     setSelected(seatId);
-    setDragging(false);
-    // TODO: POST /api/seats to reserve seat
-  };
+    setOccupied((prev) => [...prev, seatId]);
+  } catch (err) {
+    alert(err.error || "Seat reservation failed");
+  }
+};
   const allowDrop = (e) => e.preventDefault();
 
   const renderSeat = (row, col) => {
