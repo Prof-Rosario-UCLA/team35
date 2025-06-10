@@ -4,6 +4,7 @@
   },
   "dependencies": {
     "@grpc/proto-loader": "^0.7.15",
+    "axios": "^1.9.0",
     "google-protobuf": "^3.21.4"
   }
 }

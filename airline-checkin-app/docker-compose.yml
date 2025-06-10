@@ -1,16 +1,10 @@
-
-
-
-
 services:
-  
+ 
   redis:
     image: redis:7
     ports:
       - "6379:6379"
 
-  # Cache service for Redis
-  # This service is used to cache flight bookings
   redis-service:
     build:
       context: .
@@ -23,47 +17,48 @@ services:
     depends_on:
       - redis
 
+  # --- ADD THE NEW FIREBASE EMULATOR SERVICE ---
+  firebase-emulator:
+    build:
+      context: ./firebase-emulator # Use the Dockerfile we created
+    ports:
+      - "4000:4000" # Emulator UI
+      - "8080:8080" # Firestore Emulator
+    volumes:
+      - .:/app # Mount project root to access firebase.json
+    # Command to start only the Firestore emulator
+    # The --host 0.0.0.0 flag is crucial for it to be accessible from other containers
+    command: >
+      firebase emulators:start --only firestore --project cs144-airline-checkin
+  # ---------------------------------------------
 
-  # # Backend service for handling flight bookings
-  # # This service is responsible for managing static flight data, and proxies the redis db
   backend:
     build:
       context: .
       dockerfile: server/Dockerfile
     ports:
-      - "1919:1919"   # map host 1919 → container 1919
+      - "1919:1919"
     container_name: backend
     environment:
-      redis_service: "http://redis-service:5000" # URL for the Redis service
+      # --- THIS IS THE UPDATED LINE ---
+      # Point to the new service by its container name 'firebase-emulator'
+      FIRESTORE_EMULATOR_HOST: "firebase-emulator:8080"
+      # --------------------------------
+      redis_service: "http://redis-service:5000"
       SEED: "42"
     depends_on:
       - redis
       - redis-service
+      - firebase-emulator # Make backend wait for the emulator to start
 
-  # Frontend service for the user interface
-  # This service serves the React application
   frontend:
-      build:
-        context: ./frontend
-        dockerfile: ./Dockerfile
-      ports:
-        - "3000:80"       # map host 3000 → container 80
-      environment:
-        REACT_APP_API_BASE: "http://backend:1919" # API URL for the frontend to communicate with the backend
-        redis_service: "http://redis-service:5000" # URL for the frontend to communicate with the Redis service
-      depends_on:
-         - backend
-
-  # # Test service for running tests
-  # tests:
-  #   build:
-  #     context: .
-  #     dockerfile: redis/Dockerfile.test
-  #   # Do NOT use network_mode: "host" here.
-  #   # Instead, rely on host.docker.internal to reach the host machine.
-  #   environment:
-  #     REDIS_URL: "redis://host.docker.internal:6379/0"
-  #     GRPC_TARGET: "host.docker.internal:5000"
-  #   depends_on:
-  #     - redis-service
-    
+    build:
+      context: ./frontend
+      dockerfile: ./Dockerfile
+    ports:
+      - "3000:80"
+    environment:
+      REACT_APP_API_BASE: "http://backend:1919"
+      redis_service: "http://redis-service:5000"
+    depends_on:
+      - backend

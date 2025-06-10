@@ -1,62 +1,97 @@
-import { useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
-import NavBar from "../components/NavBar";
+import { useEffect, useState, useContext } from "react";
+import { Link } from "react-router-dom";
 import { useApi } from "../utils/api";
-
-// const MOCK_FLIGHTS = [
-//   { id: 42, code: "UA 204", destination: "JFK", time: "10 : 45 AM" },
-//   { id: 43, code: "AA 123", destination: "LAX", time: "2 : 30 PM" },
-//   { id: 44, code: "DL 456", destination: "ORD", time: "5 : 15 PM" },
-// ];
+import { AuthContext } from "../AuthContext";
+import NavBar from "../components/NavBar";
 
 export default function Dashboard() {
-  const [flights, setFlights] = useState([]);
-  const [error, setError] = useState("");
-  const navigate = useNavigate();
   const { req } = useApi();
+  const { token } = useContext(AuthContext);
 
+  const [allFlights, setAllFlights] = useState([]);
+  const [bookedFlights, setBookedFlights] = useState([]);
+  const [error, setError] = useState("");
+
+  // Get UID from token
+  let uid = "";
+  if (token) {
+    try {
+      uid = JSON.parse(atob(token.split(".")[1])).uid;
+    } catch (e) {
+      console.error("Failed to parse JWT:", e);
+    }
+  }
+
+  // Effect to get ALL available flights
   useEffect(() => {
     req("/flights")
-      .then(setFlights)
-      .catch((e) =>
-        setError(e.error || "Failed to load flights. Please try again.")
-    );
-  }, []);
+      .then(setAllFlights)
+      .catch(() => setError("Could not fetch flights."));
+  }, [req]);
 
-    
+  // Effect to get USER'S booked flights
+  useEffect(() => {
+    if (uid) {
+      req(`/users/${uid}/checkins`)
+        .then(setBookedFlights)
+        .catch(() => setError("Could not fetch your booked flights."));
+    }
+  }, [uid, req]);
 
   return (
     <>
       <NavBar />
       <main className="container">
-        <h2 style={{ fontSize: "1.5rem", fontWeight: 700, margin: "1.5rem 0" }}>
-          Your upcoming flights
-        </h2>
+        {error && <p style={{ color: "red" }}>{error}</p>}
+        
+        {/* --- Section 1: User's Booked Flights --- */}
+        <section>
+          <h2>Your Booked Flights</h2>
+          {bookedFlights.length > 0 ? (
+            <ul style={{ display: "grid", gap: "1rem", listStyle: "none", padding: 0 }}>
+              {bookedFlights.map((flight) => (
+                <li key={`${flight.id}-${flight.seatNumber}`} className="card">
+                  <div>
+                    <p style={{ fontWeight: 600 }}>Flight {flight.id}</p>
+                    <p style={{ fontSize: "0.875rem", color: "#6b7280" }}>
+                      {flight.origin} to {flight.destination}
+                    </p>
+                  </div>
+                  <div>
+                    <p style={{ fontWeight: 600, textAlign: "right" }}>Seat</p>
+                    <p style={{ fontSize: "1.25rem", fontWeight: 700 }}>{flight.seatNumber}</p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p>You have not checked in for any flights.</p>
+          )}
+        </section>
 
-        {flights.length === 0 ? (
-          <p style={{ textAlign: "center", marginTop: "1rem" }}>
-            {navigator.onLine ? "No flights found." : "You are offline. Trying to fetch data..."}
-          </p>
-        ) : (
-          <ul style={{ display: "grid", gap: "1rem" }}>
-            {flights.map((f) => (
-              <li key={f.id} className="card">
-                <div>
-                  <p style={{ fontWeight: 600 }}>{f.code}</p>
-                  <p style={{ fontSize: "0.875rem", color: "#6b7280" }}>
-                    To {f.destination} • {f.time}
-                  </p>
-                </div>
-                <button
-                  className="btn"
-                  onClick={() => navigate(`/select-seat/${f.id}`)}
-                >
-                  Check in
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
+        {/* --- Section 2: All Available Flights --- */}
+        <section style={{marginTop: "2rem"}}>
+          <h2>All Available Flights</h2>
+          {allFlights.length > 0 ? (
+            <ul style={{ display: "grid", gap: "1rem", listStyle: "none", padding: 0 }}>
+              {allFlights.map((flight) => (
+                <li key={flight.id} className="card">
+                   <div>
+                    <p style={{ fontWeight: 600 }}>Flight {flight.id}</p>
+                    <p style={{ fontSize: "0.875rem", color: "#6b7280" }}>
+                      {flight.origin} to {flight.destination}
+                    </p>
+                  </div>
+                  <Link to={`/select-seat/${flight.id}`} className="btn">
+                    Check In
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p>No flights available at this time.</p>
+          )}
+        </section>
       </main>
     </>
   );
