@@ -20,7 +20,7 @@ export function useApi() {
       ...opts,
       headers: {
         "Content-Type": "application/json",
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),  // 👈 add back
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),  //  add back
         ...opts.headers,
       },
     });

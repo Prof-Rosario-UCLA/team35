@@ -57,7 +57,7 @@ function requireAuth(req, res, next) {
   }
 }
 
-// SINGLE /api/login handler (keep ONE)
+// SINGLE /api/login handler 
 app.post("/api/login", async (req, res) => {
   const { name, email } = req.body;
   if (!name || !email) {

@@ -34,7 +34,9 @@ export default function Dashboard() {
         </h2>
 
         {flights.length === 0 ? (
-          <p>No flights found.</p>
+          <p style={{ textAlign: "center", marginTop: "1rem" }}>
+            {navigator.onLine ? "No flights found." : "You are offline. Trying to fetch data..."}
+          </p>
         ) : (
           <ul style={{ display: "grid", gap: "1rem" }}>
             {flights.map((f) => (
