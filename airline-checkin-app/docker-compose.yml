@@ -49,10 +49,10 @@ services:
       ports:
         - "3000:80"       # map host 3000 → container 80
       environment:
-        REACT_APP_API_URL: "http://backend:1919" # API URL for the frontend to communicate with the backend
+        REACT_APP_API_BASE: "http://backend:1919" # API URL for the frontend to communicate with the backend
         redis_service: "http://redis-service:5000" # URL for the frontend to communicate with the Redis service
-      # depends_on:
-      #   - backend
+      depends_on:
+         - backend
 
   # # Test service for running tests
   # tests:

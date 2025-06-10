@@ -1,55 +1,32 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../AuthContext";
-import { useContext } from "react";
 import NavBar from "../components/NavBar";
+import { useApi } from "../utils/api";
 
 export default function Login() {
-  const [bookingId, setBookingId] = useState("");
-  const [lastName, setLastName] = useState("");
+  const [name,  setName]  = useState("");
+  const [email, setEmail] = useState("");
   const [error, setError] = useState("");
-  const { setToken } = useContext(AuthContext);
-  const navigate = useNavigate();
 
-  /* const handleSubmit = async (e) => {
+  const { setToken } = useContext(AuthContext);
+  const { req }      = useApi();
+  const navigate     = useNavigate();
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     try {
-      // call backend auth route
-      const res = await fetch("/api/auth", {
+      const data = await req("/api/login", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ bookingId, lastName }),
+        body: JSON.stringify({ name, email }),
       });
-      if (!res.ok) throw new Error("Invalid credentials");
-      const { token } = await res.json();
-      setToken(token);
+      setToken(data.token);
       navigate("/dashboard");
     } catch (err) {
-      setError(err.message);
+      setError(err.error || "Login failed");
     }
-  }; */
-
-  const handleSubmit = async (e) => {
-  e.preventDefault();
-  setError("");
-
-  try {
-    const res = await fetch("/api/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",                        // receive jwt cookie
-      body: JSON.stringify({ bookingId, lastName }),
-    });
-    if (!res.ok) throw await res.json();
-    const { token } = await res.json();              // server still echoes token
-    setToken(token);
-    navigate("/dashboard");
-  } catch (err) {
-    setError(err.error || "Login failed");
-  }
-};
-
+  };
 
   return (
     <>
@@ -59,24 +36,10 @@ export default function Login() {
           Log in / Check-in
         </h2>
         <form onSubmit={handleSubmit} style={{ display: "grid", gap: "1rem" }}>
-          <input
-            aria-label="Booking ID"
-            placeholder="Booking ID"
-            value={bookingId}
-            onChange={(e) => setBookingId(e.target.value)}
-            required
-          />
-          <input
-            aria-label="Last name"
-            placeholder="Last name"
-            value={lastName}
-            onChange={(e) => setLastName(e.target.value)}
-            required
-          />
-          <button className="btn" type="submit">
-            Continue
-          </button>
-          {error && <p style={{ color: "red" }}>{error}</p>}
+          <input placeholder="Name"  value={name}  onChange={(e)=>setName(e.target.value)} />
+          <input placeholder="Email" value={email} onChange={(e)=>setEmail(e.target.value)} />
+          <button className="btn" type="submit">Continue</button>
+          {error && <p style={{ color:"red" }}>{error}</p>}
         </form>
       </main>
     </>

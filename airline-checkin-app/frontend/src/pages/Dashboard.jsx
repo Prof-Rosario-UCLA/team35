@@ -3,11 +3,11 @@ import { useEffect, useState } from "react";
 import NavBar from "../components/NavBar";
 import { useApi } from "../utils/api";
 
-const MOCK_FLIGHTS = [
-  { id: 42, code: "UA 204", destination: "JFK", time: "10 : 45 AM" },
-  { id: 43, code: "AA 123", destination: "LAX", time: "2 : 30 PM" },
-  { id: 44, code: "DL 456", destination: "ORD", time: "5 : 15 PM" },
-];
+// const MOCK_FLIGHTS = [
+//   { id: 42, code: "UA 204", destination: "JFK", time: "10 : 45 AM" },
+//   { id: 43, code: "AA 123", destination: "LAX", time: "2 : 30 PM" },
+//   { id: 44, code: "DL 456", destination: "ORD", time: "5 : 15 PM" },
+// ];
 
 export default function Dashboard() {
   const [flights, setFlights] = useState([]);
