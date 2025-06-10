@@ -1,6 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import { useContext } from "react";
 import { AuthContext } from "../AuthContext";
+import OfflineBanner from './OfflineBanner';
 
 export default function NavBar() {
   const { pathname } = useLocation();
@@ -17,6 +18,7 @@ export default function NavBar() {
 
   return (
     <header>
+      <OfflineBanner />
       <nav className="container" style={{ display: "flex", gap: "1rem" }}>
         {link("/", "Home")}
         {token && link("/dashboard", "Dashboard")}

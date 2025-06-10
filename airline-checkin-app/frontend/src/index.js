@@ -10,10 +10,15 @@ import Login from "./pages/Login";
 import AuthProvider, { AuthContext } from "./AuthContext";
 import Admin from "./pages/Admin";
 
+import * as serviceWorkerRegistration from './serviceWorkerRegistration';
+
 function PrivateRoute({ element }) {
   const { token } = React.useContext(AuthContext);
   return token ? element : <Navigate to="/login" replace />;
 }
+
+
+serviceWorkerRegistration.register();
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
