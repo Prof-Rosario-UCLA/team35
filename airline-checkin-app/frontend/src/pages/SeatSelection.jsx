@@ -5,41 +5,54 @@ import { useApi } from "../utils/api";
 import { AuthContext } from "../AuthContext";
 
 export default function SeatSelection() {
-  const { flightId }  = useParams();
-  const { req }       = useApi();
-  const { token }     = useContext(AuthContext);
-  const uid           = token ? JSON.parse(atob(token.split(".")[1])).uid : "";
+  const { flightId } = useParams();
+  const { req } = useApi();
+  const { token } = useContext(AuthContext);
 
-  const [seats,     setSeats]     = useState([]);   // full seat objects
-  const [selected,  setSelected]  = useState(null);
-  const [dragging,  setDragging]  = useState(false);
+  let uid = "";
+  if (token) {
+    try {
+      uid = JSON.parse(atob(token.split(".")[1])).uid;
+    } catch (e) {
+      console.error("Failed to parse JWT:", e);
+    }
+  }
+
+  const [seats, setSeats] = useState([]); // Will hold full seat objects [{id: '1A', ...}]
+  const [selected, setSelected] = useState(null);
+  const [dragging, setDragging] = useState(false);
 
   /* --- load seat list --- */
   useEffect(() => {
     req(`/flights/${flightId}/seats`)
-      .then(setSeats)
-      .catch(console.error);
-  }, [flightId]);
+      .then(setSeats) // Correctly set the full array of seat objects
+      .catch((err) => {
+        console.error("Failed to fetch seat data:", err);
+        setSeats([]);
+      });
+  }, [flightId, req]);
 
   /* --- helpers --- */
-  const occupied = seats.filter((s) => !s.available).map((s) => s.seatNumber);
-
   const onDragStart = () => setDragging(true);
-  const onDragEnd   = () => setDragging(false);
-  const allowDrop   = (e) => e.preventDefault();
+  const onDragEnd = () => setDragging(false);
+  const allowDrop = (e) => e.preventDefault();
 
-  const onDropSeat  = (seatId) => async (e) => {
+  const onDropSeat = (seatId) => async (e) => {
     e.preventDefault();
+    if (!seatId) {
+      alert("Invalid seat selected.");
+      return;
+    }
     try {
       await req(`/flights/${flightId}/seats/reserve`, {
         method: "POST",
         body: JSON.stringify({ uid, seatNumber: seatId }),
       });
       setSelected(seatId);
-      // update local state
+      // update local state to reflect the change immediately
       setSeats((prev) =>
         prev.map((s) =>
-          s.seatNumber === seatId ? { ...s, available: false, userId: uid } : s
+          s.id === seatId ? { ...s, available: false, userId: uid } : s
         )
       );
     } catch (err) {
@@ -51,41 +64,43 @@ export default function SeatSelection() {
     <>
       <NavBar />
       <main className="container">
-        <h2 style={{ fontSize:"1.5rem", fontWeight:700, margin:"1.5rem 0" }}>
+        <h2 style={{ fontSize: "1.5rem", fontWeight: 700, margin: "1.5rem 0" }}>
           Drag passenger → seat — flight {flightId}
         </h2>
 
         {/* passenger token */}
-        <section aria-label="Passenger" style={{ textAlign:"center" }}>
+        <section aria-label="Passenger" style={{ textAlign: "center" }}>
           <div
             className={`passenger ${dragging ? "dragging" : ""}`}
             draggable
             onDragStart={onDragStart}
             onDragEnd={onDragEnd}
             aria-grabbed={dragging}
-          >🧍</div>
-          <p style={{ marginTop:".5rem" }}>Passenger</p>
+          >
+            🧍
+          </div>
+          <p style={{ marginTop: ".5rem" }}>Passenger</p>
         </section>
 
         {/* seat grid */}
         <section className="seat-grid" aria-label="Seat map">
           {seats.map((seat) => (
             <div
-              key={seat.seatNumber}
+              key={seat.id}  // Use seat.id
               className={`seat ${!seat.available ? "occupied" : ""} ${
-                selected === seat.seatNumber ? "selected" : ""
+                selected === seat.id ? "selected" : "" // Use seat.id
               }`}
               onDragOver={allowDrop}
-              onDrop={seat.available ? onDropSeat(seat.seatNumber) : undefined}
+              onDrop={seat.available ? onDropSeat(seat.id) : undefined} // Use seat.id
               aria-disabled={!seat.available}
             >
-              {seat.seatNumber}
+              {seat.id} {/* Use seat.id */}
             </div>
           ))}
         </section>
 
         {selected && (
-          <p style={{ marginTop:"1.5rem", textAlign:"center" }}>
+          <p style={{ marginTop: "1.5rem", textAlign: "center" }}>
             Selected seat: <strong>{selected}</strong>
           </p>
         )}
