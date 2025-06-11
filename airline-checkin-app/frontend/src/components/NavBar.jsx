@@ -10,6 +10,14 @@ export default function NavBar() {
   const { token, logout } = useContext(AuthContext);
   const { apiLogout } = useApi();
 
+    /* 🔑 Decode email from JWT (simple helper) */
+  let email = "";
+  if (token) {
+    try {
+      email = JSON.parse(atob(token.split(".")[1])).email;
+    } catch {}
+  }
+
   const link = (to, label) => (
     <Link
       to={to}
@@ -26,7 +34,9 @@ export default function NavBar() {
       <nav className="container" style={{ display: "flex", gap: "1rem" }}>
         {link("/", "Home")}
         {token && link("/dashboard", "Dashboard")}
-        {token && link("/admin", "Admin")}
+
+        
+        {token && email === "admin@gmail.com" && link("/admin", "Admin")}
         <ThemeToggleButton />
         {!token ? link("/login", "Log in") : (
           <button

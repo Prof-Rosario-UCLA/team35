@@ -89,7 +89,7 @@ app.post("/api/login", async (req, res) => {
   }
   const uid = userDoc.docs[0].id;
 
-  const token = signToken({ uid, name });
+  const token = signToken({ uid, name, email });
   setAuthCookie(res, token);
   res.json({ token });
 });
@@ -109,7 +109,7 @@ app.post("/api/register", async (req, res) => {
   }
 
   const ref   = await db.collection("users").add({ name, email });
-  const token = signToken({ uid: ref.id, name });
+  const token = signToken({ uid: ref.id, name, email });
   setAuthCookie(res, token);
   return res.json({ token });
 });
