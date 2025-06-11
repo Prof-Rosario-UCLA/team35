@@ -36,21 +36,22 @@ export default function Login() {
           Log in / Check-in
         </h2>
         <form onSubmit={handleSubmit} style={{ display: "grid", gap: "1rem" }}>
-          <input
-            type="text"
-            aria-label="Name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Name"
-          />
-
-          <input
+           <input
             type="email"
             aria-label="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="Email"
           />
+          <input
+            type="password"
+            aria-label="Password"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Password"
+          />
+
+         
           <button className="btn" type="submit">Continue</button>
           {error && <p style={{ color:"red" }}>{error}</p>}
         </form>

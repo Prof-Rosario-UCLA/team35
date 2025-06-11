@@ -35,19 +35,19 @@ export default function Register() {
         <h2>Create Account</h2>
         <form onSubmit={handleSubmit} style={{ display:"grid", gap:"1rem" }}>
           <input
-            type="text"
-            aria-label="Name"
-            placeholder="Name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-          />
-          <input
             type="email"
             aria-label="Email"
             placeholder="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+          <input
+            type="password"
+            aria-label="Password"
+            placeholder="Password"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
             required
           />
           <button className="btn" type="submit">Register</button>
