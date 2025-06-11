@@ -7,7 +7,7 @@ WORKDIR /usr/src/app
 COPY server/package*.json ./
 RUN npm ci --only=production
 
-COPY server/serviceAccountKey.json ./
+# COPY server/serviceAccountKey.json ./
 
 
 # ─── Step 3: Copy the rest of your server code ─────────────────────────────────────
