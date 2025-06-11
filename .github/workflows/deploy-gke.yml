@@ -4,8 +4,7 @@ on:
   push:
     branches:
       - main  # or your deploy branch
-    workflow_dispatch:
-
+  workflow_dispatch:
 
 jobs:
   deploy:
@@ -33,11 +32,22 @@ jobs:
     # --- Create service account key file for backend build ---
     - name: Create service account key file
       run: |
-        echo "${{ secrets.GCP_SA_KEY_JSON }}" > airline-checkin-app/server/serviceAccountKey.json
+        echo "${{ secrets.GCP_SA_KEY_JSON }}" > server/serviceAccountKey.json
+
+    # --- Create .env file for backend build ---
+    - name: Create .env file
+      run: |
+        cat << EOF > server/.env
+        REACT_APP_FIREBASE_API_KEY=${{ secrets.REACT_APP_FIREBASE_API_KEY }}
+        REACT_APP_FIREBASE_AUTH_DOMAIN=${{ secrets.REACT_APP_FIREBASE_AUTH_DOMAIN }}
+        REACT_APP_FIREBASE_PROJECT_ID=${{ secrets.REACT_APP_FIREBASE_PROJECT_ID }}
+        REACT_APP_FIREBASE_STORAGE_BUCKET=${{ secrets.REACT_APP_FIREBASE_STORAGE_BUCKET }}
+        REACT_APP_FIREBASE_MESSAGING_SENDER_ID=${{ secrets.REACT_APP_FIREBASE_MESSAGING_SENDER_ID }}
+        REACT_APP_FIREBASE_APP_ID=${{ secrets.REACT_APP_FIREBASE_APP_ID }}
+        EOF
 
     # --- Build and push backend ---
     - name: Build backend image
-      working-directory: ./airline-checkin-app
       run: docker build -t gcr.io/${{ secrets.GCP_PROJECT_ID }}/backend:latest -f server/Dockerfile .
 
     - name: Push backend image
@@ -45,7 +55,6 @@ jobs:
 
     # --- Build and push frontend ---
     - name: Build frontend image
-      working-directory: ./airline-checkin-app
       run: docker build -t gcr.io/${{ secrets.GCP_PROJECT_ID }}/frontend:latest -f frontend/Dockerfile .
 
     - name: Push frontend image
@@ -53,7 +62,6 @@ jobs:
 
     # --- Build and push redis-service ---
     - name: Build redis-service image
-      working-directory: ./airline-checkin-app
       run: docker build -t gcr.io/${{ secrets.GCP_PROJECT_ID }}/redis-service:latest -f redis/Dockerfile .
 
     - name: Push redis-service image
@@ -66,12 +74,12 @@ jobs:
 
     - name: Deploy to GKE
       run: |
-        kubectl apply -f airline-checkin-app/backend-deployment.yaml
-        kubectl apply -f airline-checkin-app/frontend-deployment.yaml
-        kubectl apply -f airline-checkin-app/redis-service-deployment.yaml
-        kubectl apply -f airline-checkin-app/redis-deployment.yaml
-        kubectl apply -f airline-checkin-app/backend-service.yaml
-        kubectl apply -f airline-checkin-app/frontend-service.yaml
-        kubectl apply -f airline-checkin-app/redis-service-service.yaml
-        kubectl apply -f airline-checkin-app/redis-service.yaml
-        kubectl apply -f airline-checkin-app/redis.yaml
+        kubectl apply -f backend-deployment.yaml
+        kubectl apply -f frontend-deployment.yaml
+        kubectl apply -f redis-service-deployment.yaml
+        kubectl apply -f redis-deployment.yaml
+        kubectl apply -f backend-service.yaml
+        kubectl apply -f frontend-service.yaml
+        kubectl apply -f redis-service-service.yaml
+        kubectl apply -f redis-service.yaml
+        kubectl apply -f redis.yaml
