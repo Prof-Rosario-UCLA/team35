@@ -96,16 +96,17 @@ router.post("/:fid/seats/reserve", async (req, res) => {
     
     // Create a check-in document for the user with flight details included
     const userCheckinRef = db.collection("users").doc(uid).collection("checkins").doc(flightId);
-    await userCheckinRef.set({
-      flightId: flightId,
-      seatNumber: seatNumber,
-      checkInTime: admin.firestore.FieldValue.serverTimestamp(),
-      // Denormalized data:
-      origin: flightData.origin,
-      destination: flightData.destination,
-      departureTime: flightData.departureTime
-    });
+    const checkinData = {
+  flightId,
+  seatNumber,
+  checkInTime: admin.firestore.FieldValue.serverTimestamp(),
+};
 
+if (flightData.origin)        checkinData.origin        = flightData.origin;
+if (flightData.destination)   checkinData.destination   = flightData.destination;
+if (flightData.departureTime) checkinData.departureTime = flightData.departureTime;
+
+await userCheckinRef.set(checkinData);
     res.json({ message: "Seat reserved and user check-in updated" });
   } catch (error) {
     console.error("FULL ERROR when reserving seat:", error); 
