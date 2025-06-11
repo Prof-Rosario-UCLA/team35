@@ -1,3 +1,4 @@
+import json
 import grpc
 from concurrent import futures
 
@@ -11,9 +12,10 @@ import flight_cache
 class FlightCacheServicer(redis_pb2_grpc.FlightCacheServicer):
     # InitFlight
     def InitFlight(self, request, context):
-        print(f"[InitFlight] flight_id={request.flight_id} all_seats={list(request.all_seats)}", flush=True)
-        flight_id = request.flight_id
-        seat_list = list(request.all_seats)
+        seat_list = list(request.allSeats)
+        seat_ids = [seat.id for seat in seat_list]
+        print(f"[InitFlight] flight_id={request.flightId} seat_ids={seat_ids}", flush=True)
+        flight_id = request.flightId
         try:
             flight_cache.init_flight(flight_id, seat_list)
         except Exception as e:
@@ -24,21 +26,34 @@ class FlightCacheServicer(redis_pb2_grpc.FlightCacheServicer):
 
     # GetFreeSeats
     def GetFreeSeats(self, request, context):
-        print(f"[GetFreeSeats] flight_id={request.flight_id}")
-        flight_id = request.flight_id
-        free_list = flight_cache.get_free_seats(flight_id)
-        if free_list is None:
+        print(f"[GetFreeSeats] flight_id={request.flightId}", flush=True)
+        flightId = request.flightId
+
+        # Get the seats JSON from Redis
+        free_seats = flight_cache.get_free_seats(flightId)
+        print(f"[GetFreeSeats] free_seats={free_seats}", flush=True)
+        if free_seats is None:
             print(f"[GetFreeSeats] flight not found", flush=True)
             context.abort(grpc.StatusCode.NOT_FOUND, "Flight not found")
-        print(f"[GetFreeSeats] returning {len(free_list)} seats: {free_list}", flush=True)
+        free_seats = json.loads(free_seats.decode("utf-8"))
+        print(f"[GetFreeSeats] decoded free_seats={free_seats}", flush=True)
+        # Build proto response
         resp = redis_pb2.GetFreeSeatsResponse()
-        resp.free_seats.extend(free_list)
+        for seat_dict in free_seats:
+            seat_msg = redis_pb2.Seat(
+                id=seat_dict["id"],
+                available=seat_dict["available"],
+                userId=seat_dict["userId"],
+                class_=seat_dict["class_"]  # Note: use class_ if your proto uses `class`
+            )
+            resp.allSeats.append(seat_msg)
         return resp
+
 
     # BookSeat
     def BookSeat(self, request, context):
-        print(f"[BookSeat] flight_id={request.flight_id} seat={request.seat} client_id={request.client_id}")
-        success = flight_cache.book_seat(request.flight_id, request.seat, request.client_id)
+        print(f"[BookSeat] flight_id={request.flightId} seat={request.seat} client_id={request.clientId}")
+        success = flight_cache.book_seat(request.flightId, request.seat, request.clientId)
         if not success:
             print(f"[BookSeat] failed — seat already booked or invalid")
             context.abort(grpc.StatusCode.ALREADY_EXISTS, "Seat already booked or invalid.")

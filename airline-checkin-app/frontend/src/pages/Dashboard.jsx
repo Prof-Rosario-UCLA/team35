@@ -51,23 +51,23 @@ useEffect(() => {
   const id = setInterval(fetchCheckins, 5 * 60_000);
   return () => clearInterval(id);
 }, [token, uid, req]);
-
-  return (
+      return (
     <>
       <NavBar />
-      <main className="container">
+      <main className="dashboard-main container">
         {error && <p style={{ color: "red" }}>{error}</p>}
         
-        {/* --- Section 1: User's Booked Flights --- */}
-        <section>
+        {/* Box 1: Your Booked Flights */}
+        <section className="dashboard-card">
           <h2>Your Booked Flights</h2>
-          {bookedFlights.length > 0 ? (
-            <ul style={{ display: "grid", gap: "1rem", listStyle: "none", padding: 0 }}>
-              {bookedFlights.map((flight) => (
+          {/* --- THIS IS THE ONLY CHANGE NEEDED --- */}
+          <ul className="scrollable-list"> 
+            {bookedFlights.length > 0 ? (
+              bookedFlights.map((flight) => (
                 <li key={`${flight.id}-${flight.seatNumber}`} className="card">
                   <div>
                     <p style={{ fontWeight: 600 }}>Flight {flight.id}</p>
-                    <p style={{ fontSize: "0.875rem", color: "#6b7280" }}>
+                    <p style={{ fontSize: "0.875rem", color: "var(--color-text-secondary)" }}>
                       {flight.origin} to {flight.destination}
                     </p>
                   </div>
@@ -76,23 +76,24 @@ useEffect(() => {
                     <p style={{ fontSize: "1.25rem", fontWeight: 700 }}>{flight.seatNumber}</p>
                   </div>
                 </li>
-              ))}
-            </ul>
-          ) : (
-            <p>You have not checked in for any flights.</p>
-          )}
+              ))
+            ) : (
+              <p>You have not checked in for any flights.</p>
+            )}
+          </ul>
         </section>
 
-        {/* --- Section 2: All Available Flights --- */}
-        <section style={{marginTop: "2rem"}}>
+        {/* Box 2: All Available Flights */}
+        <section className="dashboard-card">
           <h2>All Available Flights</h2>
-          {allFlights.length > 0 ? (
-            <ul style={{ display: "grid", gap: "1rem", listStyle: "none", padding: 0 }}>
-              {allFlights.map((flight) => (
+          {/* Add the scrollable-list class here */}
+          <ul className="scrollable-list">
+            {allFlights.length > 0 ? (
+              allFlights.map((flight) => (
                 <li key={flight.id} className="card">
-                   <div>
+                  <div>
                     <p style={{ fontWeight: 600 }}>Flight {flight.id}</p>
-                    <p style={{ fontSize: "0.875rem", color: "#6b7280" }}>
+                    <p style={{ fontSize: "0.875rem", color: "var(--color-text-secondary)" }}>
                       {flight.origin} to {flight.destination}
                     </p>
                   </div>
@@ -100,11 +101,11 @@ useEffect(() => {
                     Check In
                   </Link>
                 </li>
-              ))}
-            </ul>
-          ) : (
-            <p>No flights available at this time.</p>
-          )}
+              ))
+            ) : (
+              <p>No flights available at this time.</p>
+            )}
+          </ul>
         </section>
       </main>
     </>

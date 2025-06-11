@@ -3,11 +3,13 @@ import { useContext } from "react";
 import { AuthContext } from "../AuthContext";
 import OfflineBanner from './OfflineBanner';
 import { useApi } from "../utils/api";
+import ThemeToggleButton from "./ThemeToggleButton";
 
 export default function NavBar() {
   const { pathname } = useLocation();
   const { token, logout } = useContext(AuthContext);
-  const { apiLogout }    = useApi();
+  const { apiLogout } = useApi();
+
   const link = (to, label) => (
     <Link
       to={to}
@@ -25,14 +27,15 @@ export default function NavBar() {
         {link("/", "Home")}
         {token && link("/dashboard", "Dashboard")}
         {token && link("/admin", "Admin")}
+        <ThemeToggleButton />
         {!token ? link("/login", "Log in") : (
           <button
             onClick={async () => {
-              await apiLogout(); // clear HTTP-only cookie
-              logout();          // clear React state
+              await apiLogout();
+              logout();
             }}
             aria-label="Log out"
-            style={{ background:"none", border:"none", cursor:"pointer", padding:"0.75rem 1rem", color:"#dc2626" }}
+            style={{ background: "none", border: "none", cursor: "pointer", padding: "0.75rem 1rem", color: "#dc2626" }}
           >
             Log out
           </button>

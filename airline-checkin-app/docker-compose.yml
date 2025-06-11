@@ -4,6 +4,7 @@ services:
     image: redis:7
     ports:
       - "6379:6379"
+    command: ["redis-server", "--maxmemory", "512mb", "--maxmemory-policy", "allkeys-lru"]
 
   redis-service:
     build:
@@ -17,7 +18,7 @@ services:
     depends_on:
       - redis
 
-  # --- ADD THE NEW FIREBASE EMULATOR SERVICE ---
+  # # --- ADD THE NEW FIREBASE EMULATOR SERVICE ---
   firebase-emulator:
     build:
       context: ./firebase-emulator # Use the Dockerfile we created
@@ -30,7 +31,7 @@ services:
     # The --host 0.0.0.0 flag is crucial for it to be accessible from other containers
     command: >
       firebase emulators:start --only firestore --project cs144-airline-checkin
-  # ---------------------------------------------
+  # # ---------------------------------------------
 
   backend:
     build:
@@ -42,14 +43,15 @@ services:
     environment:
       # --- THIS IS THE UPDATED LINE ---
       # Point to the new service by its container name 'firebase-emulator'
-      FIRESTORE_EMULATOR_HOST: "firebase-emulator:8080"
+      # Uncomment the line below to use the emulator
+      # # FIRESTORE_EMULATOR_HOST: "firebase-emulator:8080"
       # --------------------------------
       redis_service: "http://redis-service:5000"
       SEED: "42"
     depends_on:
       - redis
       - redis-service
-      - firebase-emulator # Make backend wait for the emulator to start
+      # - firebase-emulator # Make backend wait for the emulator to start
 
   frontend:
     build:
