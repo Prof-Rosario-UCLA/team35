@@ -28,21 +28,24 @@ jobs:
 
     # --- Build and push backend ---
     - name: Build backend image
-      run: docker build -t gcr.io/${{ secrets.GCP_PROJECT_ID }}/backend:latest ./airline-checkin-app/server
+      working-directory: ./airline-checkin-app
+      run: docker build -t gcr.io/${{ secrets.GCP_PROJECT_ID }}/backend:latest -f server/Dockerfile .
 
     - name: Push backend image
       run: docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/backend:latest
 
     # --- Build and push frontend ---
     - name: Build frontend image
-      run: docker build -t gcr.io/${{ secrets.GCP_PROJECT_ID }}/frontend:latest ./airline-checkin-app/frontend
+      working-directory: ./airline-checkin-app
+      run: docker build -t gcr.io/${{ secrets.GCP_PROJECT_ID }}/frontend:latest -f frontend/Dockerfile .
 
     - name: Push frontend image
       run: docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/frontend:latest
 
     # --- Build and push redis-service ---
     - name: Build redis-service image
-      run: docker build -t gcr.io/${{ secrets.GCP_PROJECT_ID }}/redis-service:latest ./airline-checkin-app/redis
+      working-directory: ./airline-checkin-app
+      run: docker build -t gcr.io/${{ secrets.GCP_PROJECT_ID }}/redis-service:latest -f redis/Dockerfile .
 
     - name: Push redis-service image
       run: docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/redis-service:latest
