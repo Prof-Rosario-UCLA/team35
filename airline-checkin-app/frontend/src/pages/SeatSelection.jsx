@@ -24,13 +24,11 @@ export default function SeatSelection() {
 
   /* --- load seat list --- */
   useEffect(() => {
-    req(`/flights/${flightId}/seats`)
-      .then(setSeats) // Correctly set the full array of seat objects
-      .catch((err) => {
-        console.error("Failed to fetch seat data:", err);
-        setSeats([]);
-      });
-  }, [flightId, req]);
+  req(`/flights/${flightId}/seats`)
+    .then(setSeats)
+    .catch(err => { console.error(err); setSeats([]); });
+// eslint-disable-next-line react-hooks/exhaustive-deps
+}, [flightId]);   // req is stable now; omit to avoid extra fetch
 
   /* --- helpers --- */
   const onDragStart = () => setDragging(true);

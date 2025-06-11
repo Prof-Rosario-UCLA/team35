@@ -1,19 +1,31 @@
-import React, {createContext, useState, useEffect} from "react";
+import React, {
+  createContext,
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+} from "react";
 
-export const AuthContext = createContext(null);
+export const AuthContext = createContext({
+  token: null,
+  setToken: () => {},
+  logout: () => {},
+});
 
-export default function AuthProvider({children}) {
-  const [token, setToken] = useState(() => localStorage.getItem("jwt") || null);
+export default function AuthProvider({ children }) {
+  const [token, setToken] = useState(() => localStorage.getItem("jwt"));
 
   useEffect(() => {
     if (token) localStorage.setItem("jwt", token);
     else localStorage.removeItem("jwt");
   }, [token]);
 
-  const logout = () => setToken(null);
+  const logout = useCallback(() => setToken(null), []);
+
+  const value = useMemo(() => ({ token, setToken, logout }), [token, logout]);
 
   return (
-    <AuthContext.Provider value={{token, setToken, logout}}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );

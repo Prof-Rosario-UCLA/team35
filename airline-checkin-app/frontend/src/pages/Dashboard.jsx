@@ -22,21 +22,35 @@ export default function Dashboard() {
     }
   }
 
-  // Effect to get ALL available flights
-  useEffect(() => {
+  // Fetch all flights
+useEffect(() => {
+  console.log("⏳ flights effect triggered");
+  if (!token) return;
+
+  const fetchFlights = () =>
     req("/flights")
       .then(setAllFlights)
       .catch(() => setError("Could not fetch flights."));
-  }, [req]);
 
-  // Effect to get USER'S booked flights
-  useEffect(() => {
-    if (uid) {
-      req(`/users/${uid}/checkins`)
-        .then(setBookedFlights)
-        .catch(() => setError("Could not fetch your booked flights."));
-    }
-  }, [uid, req]);
+  fetchFlights();
+  const id = setInterval(fetchFlights, 5 * 60_000);
+  return () => clearInterval(id);
+}, [token, req]);
+
+// Fetch user's booked flights
+useEffect(() => {
+  console.log("⏳ checkins effect triggered");
+  if (!token || !uid) return;
+
+  const fetchCheckins = () =>
+    req(`/users/${uid}/checkins`)
+      .then(setBookedFlights)
+      .catch(() => setError("Could not fetch your booked flights."));
+
+  fetchCheckins();
+  const id = setInterval(fetchCheckins, 5 * 60_000);
+  return () => clearInterval(id);
+}, [token, uid, req]);
 
   return (
     <>
