@@ -42,7 +42,8 @@ services:
     environment:
       # --- THIS IS THE UPDATED LINE ---
       # Point to the new service by its container name 'firebase-emulator'
-      FIRESTORE_EMULATOR_HOST: "firebase-emulator:8080"
+      # Uncomment the line below to use the emulator
+      # FIRESTORE_EMULATOR_HOST: "firebase-emulator:8080"
       # --------------------------------
       redis_service: "http://redis-service:5000"
       SEED: "42"

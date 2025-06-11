@@ -2,6 +2,7 @@ import { Link, useLocation } from "react-router-dom";
 import { useContext } from "react";
 import { AuthContext } from "../AuthContext";
 import OfflineBanner from './OfflineBanner';
+import ThemeToggleButton from "./ThemeToggleButton";
 
 export default function NavBar() {
   const { pathname } = useLocation();
@@ -23,6 +24,7 @@ export default function NavBar() {
         {link("/", "Home")}
         {token && link("/dashboard", "Dashboard")}
         {token && link("/admin", "Admin")}
+        <ThemeToggleButton />
         {!token ? link("/login", "Log in") : (
           <button onClick={logout} style={{ background: "none", border: "none", cursor: "pointer", padding: "0.75rem 1rem", color: "#dc2626" }}>
             Log out

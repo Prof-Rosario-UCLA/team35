@@ -12,6 +12,7 @@ import Admin from "./pages/Admin";
 import Register from "./pages/Register";
 
 import * as serviceWorkerRegistration from './serviceWorkerRegistration';
+import { ThemeProvider } from "./ThemeContext";
 
 function PrivateRoute({ element }) {
   const { token } = React.useContext(AuthContext);
@@ -24,21 +25,23 @@ serviceWorkerRegistration.register();
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <AuthProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/dashboard" element={<PrivateRoute element={<Dashboard />} />} />
-          <Route
-            path="/select-seat/:flightId"
-            element={<PrivateRoute element={<SeatSelection />} />}
-          />
-          <Route path="/admin" element={<PrivateRoute element={<Admin />} />} />
-          <Route path="*" element={<p className="container">404</p>} />
-          
-        </Routes>
-      </BrowserRouter>
+      <ThemeProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/dashboard" element={<PrivateRoute element={<Dashboard />} />} />
+            <Route
+              path="/select-seat/:flightId"
+              element={<PrivateRoute element={<SeatSelection />} />}
+            />
+            <Route path="/admin" element={<PrivateRoute element={<Admin />} />} />
+            <Route path="*" element={<p className="container">404</p>} />
+            
+          </Routes>
+        </BrowserRouter>
+      </ThemeProvider>
     </AuthProvider>
   </React.StrictMode>
 );

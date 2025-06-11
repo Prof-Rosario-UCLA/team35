@@ -56,3 +56,31 @@ nav a.active { color:#2563eb;font-weight:700; }
 
 html,body { height:100vh; margin:0; overflow:hidden; }
 main      { height:calc(100vh - 60px); overflow:auto; }
+
+/* dark mode */
+/* Define color variables for light and dark themes */
+:root {
+  --color-background: #f8f9fa;
+  --color-text-primary: #212529;
+  --color-text-secondary: #6b7280;
+  --color-card-background: #ffffff;
+  --color-card-shadow: rgb(0 0 0 / .05);
+  --color-button-background: #0d6efd;
+  --color-button-text: #ffffff;
+  --color-header-background: #ffffff;
+  --color-border: #dee2e6;
+}
+
+[data-theme='dark'] {
+  --color-background: #121212;
+  --color-text-primary: #e0e0e0;
+  --color-text-secondary: #a0a0a0;
+  --color-card-background: #1e1e1e;
+  --color-card-shadow: rgb(255 255 255 / .05);
+  --color-button-background: #377dff;
+  --color-button-text: #ffffff;
+  --color-header-background: #1e1e1e;
+  --color-border: #343a40;
+}
+
+
