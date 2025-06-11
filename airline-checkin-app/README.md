@@ -61,12 +61,132 @@
      PING ME IF YOU HAVE ANY QUESTIONS
 
 
-     # APIS:
+     # API Documentation
 
-     ## API Endpoints For Redis
-     (These may not all work yet)
+     ## Redis Service API (gRPC)
+
+     The Redis service is implemented using gRPC and runs on port 5000. It provides the following endpoints:
+
+     ### 1. Initialize Flight
+     ```protobuf
+     rpc InitFlight(InitFlightRequest) returns (google.protobuf.Empty)
+     ```
+
+     **Request:**
+     ```json
+     {
+       "flight_id": "string",
+       "all_seats": ["string"]  // Array of seat identifiers (e.g., ["1A", "1B", "1C"])
+     }
+     ```
+
+     **Response:** Empty response on success
+
+     **Error Codes:**
+     - `INTERNAL` - If Redis operation fails
+
+     ### 2. Get Free Seats
+     ```protobuf
+     rpc GetFreeSeats(GetFreeSeatsRequest) returns (GetFreeSeatsResponse)
+     ```
+
+     **Request:**
+     ```json
+     {
+       "flight_id": "string"
+     }
+     ```
+
+     **Response:**
+     ```json
+     {
+       "free_seats": ["string"]  // Array of available seat identifiers
+     }
+     ```
+
+     **Error Codes:**
+     - `NOT_FOUND` - If flight doesn't exist
+
+     ### 3. Book Seat
+     ```protobuf
+     rpc BookSeat(BookSeatRequest) returns (BookSeatResponse)
+     ```
+
+     **Request:**
+     ```json
+     {
+       "flight_id": "string",
+       "seat": "string",      // Seat identifier (e.g., "1A")
+       "client_id": "string"  // ID of the booking client
+     }
+     ```
+
+     **Response:**
+     ```json
+     {
+       "booked": boolean  // true if booking succeeded
+     }
+     ```
+
+     **Error Codes:**
+     - `ALREADY_EXISTS` - If seat is already booked or invalid
+     - `NOT_FOUND` - If flight doesn't exist
+
+     ### 4. Get Booking
+     ```protobuf
+     rpc GetBooking(GetBookingRequest) returns (GetBookingResponse)
+     ```
+
+     **Request:**
+     ```json
+     {
+       "flight_id": "string",
+       "seat": "string"  // Seat identifier
+     }
+     ```
+
+     **Response:**
+     ```json
+     {
+       "client_id": "string"  // ID of the client who booked the seat
+     }
+     ```
+
+     **Error Codes:**
+     - `NOT_FOUND` - If seat is not booked or flight doesn't exist
+
+     ## Additional API Endpoints
+
+     ### Authentication
+     POST /api/login
+     Request Body:
+     ```json
+     {
+       "name": "string",
+       "email": "string"
+     }
+     ```
+     Response:
+     ```json
+     {
+       "token": "string"  // JWT token for authentication
+     }
+     ```
+
+     ### Admin Endpoints
+     POST /api/admin/upload
+     Request Body: FormData with manifest file (CSV or JSON)
+     Response:
+     ```json
+     {
+       "message": "Upload successful"
+     }
+     ```
+
+
+     ## Example Usages
+
      ### Initialize a Flight
-
      ```bash
      curl -X POST http://localhost:5000/flights/ABC123/init \
           -H "Content-Type: application/json" \
@@ -74,13 +194,11 @@
      ```
 
      ### Get Free Seats
-
      ```bash
      curl http://localhost:5000/flights/ABC123/free
      ```
 
      ### Book a Seat
-
      ```bash
      curl -X POST http://localhost:5000/flights/ABC123/book \
           -H "Content-Type: application/json" \
@@ -88,19 +206,125 @@
      ```
 
      ### Get a Booking
-
      ```bash
      curl http://localhost:5000/flights/ABC123/booking/A3
      ```
 
-     ---
+     ### Login
+     ```bash
+     curl -X POST http://localhost:1919/api/login \
+          -H "Content-Type: application/json" \
+          -d '{"name":"John Doe","email":"john@example.com"}'
+     ```
+
+     ### Upload Flight Manifest (Admin)
+     ```bash
+     curl -X POST http://localhost:1919/api/admin/upload \
+          -F "manifest=@flight_manifest.csv"
+     ```
+
+     ### Perform Check-in
+     ```bash
+     curl -X POST http://localhost:1919/checkin \
+          -H "Content-Type: application/json" \
+          -d '{"uid":"user123","flightId":"ABC123","seatNumber":"1A"}'
+     ```
+
+     Firestore Endpoints
+     1. Register a New User
+     POST /users
+     Request Body:
+     {
+          "name": "John Doe",
+          "email": "john@example.com"
+     }
+
+     Response:
+     {
+          "message": "User registered",
+          "id": "generatedFirestoreDocId"
+     }
+
+     2. Get User Info
+     GET /users/:uid
+     Response:
+     {
+          "name": "John Doe",
+          "email": "john@example.com"
+     }
+     3. Get List of Flights
+     GET /flights
+     Response:
+     [
+     {
+          "id": "flight123",
+          "origin": "LAX",
+          "destination": "JFK",
+          "departureTime": June 11, 2025 at 8:07:12 AM UTC-7
+     },
+     {
+          "id": "flight456",
+          "origin": "SFO",
+          "destination": "ORD",
+          "departureTime": June 11, 2025 at 8:07:12 AM UTC-7
+     }
+     ]
+
+     4. Get Flight Details
+     GET /flights/:fid (flight ID)
+     Response:
+     {
+          "origin": "LAX",
+          "destination": "JFK",
+          "departureTime": June 11, 2025 at 8:07:12 AM UTC-7
+     }
+
+     5. Get Seat Availability for a Flight
+     GET /flights/:fid/seats
+     Response:
+     [
+     {
+          "seatNumber": "1A",
+          "available": true,
+          "userId": null
+     },
+     {
+          "seatNumber": "1B",
+          "available": false,
+          "userId": "user123"
+     }
+     ]
 
 
-     # API Endpoints for Backend
-     TODO
+     6. Perform Check-in
+     POST /flights/:fid/seats/reserve
+     Request Body:
+     {
+          "uid": "user123",
+          "seatNumber": "1A"
+     }
+     Response:
+     {
+          "message": "Seat reserved and user checkins updated"
+     }
 
-     # API Endpoints for Firebase
-     TODO
+     Side Effects:
+     Updates the seat document: available: false, userId (ID of reserver): user123
+     Creates or updates a document in users/{uid}/checkins/{flightId}
+
+
+     7. Get User Check-in Information
+     GET /checkin/:uid/:fid (flightID)
+     Response:
+     {
+          flightId: “AB1234”
+          seatNumber: “12A”
+          checkInTime: June 10, 2025 at 2:07:12 AM UTC-7
+          origin: “DFW”
+          destination: “LAX”
+          departureTime: June 11, 2025 at 8:07:12 AM UTC-7
+     }
+
 
      # TODOS:
      - Implement Protobuff endpoints and finalize data 
