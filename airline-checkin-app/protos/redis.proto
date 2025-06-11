@@ -12,11 +12,20 @@ import "common.proto";  // Assuming common.proto contains shared types like Seat
 // when initializing a flight.
 message InitFlightRequest {
   // The entire list of seat identifiers for this flight (e.g. ["1A","1B","1C", …]).
-  repeated string all_seats = 1;
+  repeated Seat allSeats = 1;
   // The flight_id to which these seats belong.
-  string flight_id = 2;
+  string flightId = 2;
 }
-
+message Seat {
+  // unique identifier (you can store the same CUID string you used in Prisma, or generate new ones)
+  string id       = 1;
+  // e.g. "12A", "3B"
+  string class_    = 2;
+  // whether this seat is taken
+  string userId  = 4;
+  // whether this seat is taken
+  bool available   = 3;
+}
 // Server responds with empty content (HTTP 204) on success, so no explicit response message
 // is needed here. If you want an empty placeholder, you can define:
 //
@@ -28,12 +37,12 @@ message InitFlightRequest {
 
 message GetFreeSeatsRequest {
   // The flight_id to query for free seats.
-  string flight_id = 1;
+  string flightId = 1;
 }
 
 // FreeSeatsResponse wraps a repeated string of free‐seat labels.
 message GetFreeSeatsResponse {
-  repeated string free_seats = 1;
+  repeated Seat allSeats = 1;
 }
 
 // ————— Messages for POST /flights/{flight_id}/book —————
@@ -43,9 +52,9 @@ message BookSeatRequest {
   // The seat label to book (e.g. "12C").
   string seat = 1;
   // The client‐ID (string) of whoever is booking.
-  string client_id = 2;
+  string clientID = 2;
   // The flight_id to which this seat belongs.
-  string flight_id = 3;
+  string flightId = 3;
 }
 
 // BookSeatResponse indicates whether the booking succeeded or failed.
@@ -62,13 +71,13 @@ message BookSeatResponse {
 // was not booked, the HTTP handler returns a 404 instead of this payload.
 message GetBookingResponse {
   // The client_id currently holding this seat (e.g. "client123").
-  string client_id = 1;
+  string clientId = 1;
   
 }
 
 message GetBookingRequest {
   // The flight_id to query for the booking.
-  string flight_id = 1;
+  string flightId = 1;
 
   // The seat label to query for the booking (e.g. "12C").
   string seat = 2;

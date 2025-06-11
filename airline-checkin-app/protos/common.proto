@@ -13,13 +13,11 @@ message Seat {
   // unique identifier (you can store the same CUID string you used in Prisma, or generate new ones)
   string id       = 1;
   // e.g. "12A", "3B"
-  string label    = 2;
+  string class    = 2;
   // whether this seat is taken
-  bool is_taken   = 3;
-  // If taken, the user ID (otherwise empty)
-  string user_id  = 4;
-  // The Flight ID this seat belongs to
-  string flight_id = 5;
+  string userID  = 4;
+  // whether this seat is taken
+  bool available   = 3;
 }
 
 // A Flight record

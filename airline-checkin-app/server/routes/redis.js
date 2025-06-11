@@ -43,7 +43,7 @@ flightCacheClient.waitForReady(Date.now() + 5000, (err) => {
 // ────────────────────────────────────────────────────────────────────────────────
 router.post("/init", (req, res) => {
   const { flightId, allSeats } = req.body;
-  console.log(`[POST /redis/init] flightId=${flightId} allSeats=${allSeats}`);
+  console.log(`[POST /redis/init] flightId=${flightId} allSeats=`, allSeats);
   
   if (typeof flightId !== "string" || !Array.isArray(allSeats)) {
     return res
@@ -52,9 +52,10 @@ router.post("/init", (req, res) => {
   }
 
   const pbRequest = {
-    flight_id: flightId,
-    all_seats: allSeats,
+    flightId: flightId,
+    allSeats: allSeats,
   };
+
 
   console.log(`[gRPC InitFlight request]`, pbRequest);
 
@@ -86,9 +87,9 @@ router.get("/free/:flightId", (req, res) => {
     return res.status(400).json({ error: "flightId must be a string" });
   }
 
-  const pbRequest = { flight_id: flightId };
+  const pbRequest = { flightId: flightId };
   console.log(`[gRPC GetFreeSeats request]`, pbRequest);
-
+  
   flightCacheClient.GetFreeSeats(pbRequest, (err, response) => {
     if (err) {
       if (err.code === grpc.status.NOT_FOUND) {
@@ -108,7 +109,7 @@ router.get("/free/:flightId", (req, res) => {
     console.log(
       `[gRPC GetFreeSeats response] free_seats=${response.free_seats}`
     );
-    return res.json({ free_seats: response.free_seats });
+    return res.json(response.allSeats);
   });
 });
 
