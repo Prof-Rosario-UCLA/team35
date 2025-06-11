@@ -1,3 +1,4 @@
+
 name: Deploy to GKE
 
 on:
@@ -33,7 +34,8 @@ jobs:
     # --- Create service account key file for backend build ---
     - name: Create service account key file
       run: |
-        echo "${{ secrets.GCP_SA_KEY_JSON }}" > airline-checkin-app/server/serviceAccountKey.json
+        mkdir -p airline-checkin-app/server
+        printf "%s" "${{ secrets.GCP_SA_KEY_JSON }}" > airline-checkin-app/server/serviceAccountKey.json
 
     # --- Build and push backend ---
     - name: Build backend image
