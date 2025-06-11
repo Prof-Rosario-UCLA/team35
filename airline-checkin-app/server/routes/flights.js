@@ -68,6 +68,59 @@ router.get("/:fid/seats", async (req, res) => {
   const seats = seatsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
   res.json(seats);
 });
+// Helper to remove undefined values
+function removeUndefined(obj) {
+  return Object.fromEntries(
+    Object.entries(obj).filter(([_, v]) => v !== undefined)
+  );
+}
+
+router.post("/admin/upload", async (req, res) => {
+  console.log("Upload req.headers['content-type']:", req.headers['content-type']);
+  const db = req.app.locals.db;
+  try {
+    const manifestData = req.body;  // Now getting JSON directly!
+
+    if (!Array.isArray(manifestData)) {
+      throw new Error("Manifest data must be an array of flights");
+    }
+
+    const batch = db.batch();
+
+    manifestData.forEach(flight => {
+      const flightRef = db.collection("flights").doc(String(flight.id));
+
+      // Prepare flight data:
+      const flightData = {
+        date: flight.date ? admin.firestore.Timestamp.fromDate(new Date(flight.date)) : null,
+        origin: flight.origin,
+        destination: flight.destination,
+        status: flight.status || "on-time" // Default to "on-time" if missing
+      };
+
+      batch.set(flightRef, removeUndefined(flightData));
+
+      // Create seats under seats subcollection
+      flight.seats?.forEach(seat => {
+        const seatRef = flightRef.collection("seats").doc(String(seat.id));
+
+        batch.set(seatRef, {
+          id: seat.id,
+          class: seat.class,
+          available: true,   // Initial state
+          userId: null       // Initial state
+        });
+      });
+    });
+
+    await batch.commit();
+    res.json({ message: "Manifest uploaded successfully", flights: manifestData.length });
+  } catch (error) {
+    console.error("Error uploading manifest:", error);
+    res.status(500).json({ error: "Failed to upload manifest" });
+  }
+});
+
 
 // POST /flights/:fid/seats/reserve
 router.post("/:fid/seats/reserve", async (req, res) => {
@@ -97,21 +150,21 @@ router.post("/:fid/seats/reserve", async (req, res) => {
     // Create a check-in document for the user with flight details included
     const userCheckinRef = db.collection("users").doc(uid).collection("checkins").doc(flightId);
     const checkinData = {
-  flightId,
-  seatNumber,
-  checkInTime: admin.firestore.FieldValue.serverTimestamp(),
-};
+      flightId,
+      seatNumber,
+      checkInTime: admin.firestore.FieldValue.serverTimestamp(),
+    };
 
-if (flightData.origin)        checkinData.origin        = flightData.origin;
-if (flightData.destination)   checkinData.destination   = flightData.destination;
-if (flightData.departureTime) checkinData.departureTime = flightData.departureTime;
+    if (flightData.origin)        checkinData.origin        = flightData.origin;
+    if (flightData.destination)   checkinData.destination   = flightData.destination;
+    if (flightData.departureTime) checkinData.departureTime = flightData.departureTime;
 
-await userCheckinRef.set(checkinData);
-    res.json({ message: "Seat reserved and user check-in updated" });
-  } catch (error) {
-    console.error("FULL ERROR when reserving seat:", error); 
-    res.status(500).json({ error: "Internal server error while reserving seat." });
-  }
+    await userCheckinRef.set(checkinData);
+        res.json({ message: "Seat reserved and user check-in updated" });
+    } catch (error) {
+      console.error("FULL ERROR when reserving seat:", error); 
+      res.status(500).json({ error: "Internal server error while reserving seat." });
+    }
 });
 
 module.exports = router;
