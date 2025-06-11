@@ -26,6 +26,11 @@ jobs:
     - name: Configure Docker to use GCR
       run: gcloud auth configure-docker
 
+    # --- Create service account key file for backend build ---
+    - name: Create service account key file
+      run: |
+        echo "${{ secrets.GCP_SA_KEY_JSON }}" > airline-checkin-app/server/serviceAccountKey.json
+
     # --- Build and push backend ---
     - name: Build backend image
       working-directory: ./airline-checkin-app
