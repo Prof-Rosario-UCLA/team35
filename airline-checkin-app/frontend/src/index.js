@@ -14,6 +14,12 @@ import Register from "./pages/Register";
 import * as serviceWorkerRegistration from './serviceWorkerRegistration';
 import { ThemeProvider } from "./ThemeContext";
 import CookieBanner from "./components/CookieBanner";
+import { loadWasm } from "./utils/wasm";
+
+loadWasm().then(() => {
+  console.log("✅ WASM module loaded");
+});
+
 
 function PrivateRoute({ element }) {
   const { token } = React.useContext(AuthContext);

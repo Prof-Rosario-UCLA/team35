@@ -3,11 +3,15 @@ import { useState, useEffect, useContext } from "react";
 import NavBar from "../components/NavBar";
 import { useApi } from "../utils/api";
 import { AuthContext } from "../AuthContext";
+import { encodeSeat } from "../utils/wasm"; 
+import { encodeSeatSync } from "../utils/wasm";
 
 export default function SeatSelection() {
   const { flightId } = useParams();
   const { req } = useApi();
   const { token } = useContext(AuthContext);
+  const [showEncoded, setShowEncoded] = useState(false);  
+
 
   let uid = "";
   if (token) {
@@ -107,7 +111,9 @@ export default function SeatSelection() {
       // update local state to reflect the change immediately
       setSeats((prev) =>
         prev.map((s) =>
-          s.id === seatId ? { ...s, available: false, userId: uid } : s
+          s.id === seatId
+            ? { ...s, available: false, userId: uid }     /* 🔹 ensure available === false */
+            : s
         )
       );
     } catch (err) {
@@ -122,6 +128,13 @@ export default function SeatSelection() {
         <h2 style={{ fontSize: "1.5rem", fontWeight: 700, margin: "1.5rem 0" }}>
           Drag passenger → seat — flight {flightId}
         </h2>
+        <button
+          className="btn"                                   /* 🔹 NEW */
+          onClick={() => setShowEncoded((v) => !v)}         /* 🔹 NEW */
+          style={{ marginBottom: "1rem" }}                  /* 🔹 NEW */
+        >
+          {showEncoded ? "Show Seat IDs" : "Show WASM Codes"}  
+        </button>   
 
         {/* passenger token */}
         <section aria-label="Passenger" style={{ textAlign: "center" }}>
@@ -149,7 +162,13 @@ export default function SeatSelection() {
               onDrop={seat.available ? onDropSeat(seat.id) : undefined} // Use seat.id
               aria-disabled={!seat.available}
             >
-              {seat.id} {/* Use seat.id */}
+              {showEncoded
+                ? encodeSeatSync(
+                  parseInt(seat.id.match(/\d+/)?.[0] || 0),  // Extracts row number from "10C"
+                  seat.id.slice(-1)                          // Takes last char: "C"
+                ) ?? seat.id
+                : seat.id}
+ {/* Use seat.id */}
             </div>
           ))}
         </section>
