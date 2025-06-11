@@ -19,19 +19,19 @@ services:
       - redis
 
   # # --- ADD THE NEW FIREBASE EMULATOR SERVICE ---
-  firebase-emulator:
-    build:
-      context: ./firebase-emulator # Use the Dockerfile we created
-    ports:
-      - "4000:4000" # Emulator UI
-      - "8080:8080" # Firestore Emulator
-    volumes:
-      - .:/app # Mount project root to access firebase.json
-    # Command to start only the Firestore emulator
-    # The --host 0.0.0.0 flag is crucial for it to be accessible from other containers
-    command: >
-      firebase emulators:start --only firestore --project cs144-airline-checkin
-  # # ---------------------------------------------
+  # firebase-emulator:
+  #   build:
+  #     context: ./firebase-emulator # Use the Dockerfile we created
+  #   ports:
+  #     - "4000:4000" # Emulator UI
+  #     - "8080:8080" # Firestore Emulator
+  #   volumes:
+  #     - .:/app # Mount project root to access firebase.json
+  #   # Command to start only the Firestore emulator
+  #   # The --host 0.0.0.0 flag is crucial for it to be accessible from other containers
+  #   command: >
+  #     firebase emulators:start --only firestore --project cs144-airline-checkin
+  # # # ---------------------------------------------
 
   backend:
     build:
