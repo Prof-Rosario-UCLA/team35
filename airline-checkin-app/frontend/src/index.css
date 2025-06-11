@@ -171,3 +171,45 @@ main     { height:calc(100vh - 54px); overflow:auto; } /* Adjusted height for a 
 .scrollable-list > li:last-child {
   margin-bottom: 0;
 }
+
+
+
+@media (max-width: 600px) {
+  .dashboard-main {
+    flex-direction: column; /*  Stack vertically */
+  }
+
+  .dashboard-card {
+    width: 100%; /* Optional: Full width cards */
+  }
+}
+
+@media (max-width: 420px) {
+  .seat-grid {
+    grid-template-columns: repeat(4, 50px);
+    gap: 6px;
+  }
+
+  .seat {
+    width: 50px;
+    height: 50px;
+    font-size: 0.75rem;
+  }
+
+  .passenger {
+    width: 60px;
+    height: 60px;
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+  }
+
+  h2 {
+    font-size: 1.25rem;
+    text-align: center;
+  }
+
+  .btn {
+    font-size: 0.9rem;
+    padding: 0.5rem 0.8rem;
+  }
+}
