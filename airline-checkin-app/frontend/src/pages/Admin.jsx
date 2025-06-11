@@ -8,17 +8,36 @@ export default function Admin() {
   const [status, setStatus] = useState("");
 
   const handleUpload = async (e) => {
-    e.preventDefault();
-    if (!file) return;
-    const form = new FormData();
-    form.append("manifest", file);
+  e.preventDefault();
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = async () => {
     try {
-      await req("/api/admin/upload", { method: "POST", body: form });
+      const fileContent = reader.result;
+      const manifestData = JSON.parse(fileContent); // Parse the JSON content of the file
+
+      await req("/flights/admin/upload", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(manifestData) // Send as JSON body
+      });
+
       setStatus("Upload successful ✔️");
-    } catch {
+    } catch (err) {
+      console.error("Upload failed", err);
       setStatus("Upload failed ❌");
     }
   };
+
+  reader.onerror = () => {
+    console.error("Failed to read file");
+    setStatus("Upload failed ❌");
+  };
+
+  reader.readAsText(file); // Read file content as text (JSON string)
+};
+
 
   return (
     <>
