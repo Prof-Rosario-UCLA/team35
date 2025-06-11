@@ -96,7 +96,7 @@ useEffect(() => {
                       {flight.origin} to {flight.destination}
                     </p>
                   </div>
-                  <Link to={`/select-seat/${flight.id}`} className="btn">
+                  <Link to={`/select-seat/${flight.id}`} className="btn" aria-label={`Check in for flight ${flight.id}`}>
                     Check In
                   </Link>
                 </li>

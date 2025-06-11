@@ -25,7 +25,9 @@ export function useApi() {
       if (!res.ok) throw await res.json();
       return res.status === 204 ? null : res.json();
     };
-  }, [token]); // no [logout] — logout is stable now
+  }, [token, logout]);
 
-  return { req };
+  const apiLogout = () => req("/api/logout", { method: "POST" }).catch(() => {});
+
+ return { req, apiLogout };
 }

@@ -34,8 +34,22 @@ export default function Register() {
       <main className="container" style={{ maxWidth: 420 }}>
         <h2>Create Account</h2>
         <form onSubmit={handleSubmit} style={{ display:"grid", gap:"1rem" }}>
-          <input placeholder="Name" value={name} onChange={(e)=>setName(e.target.value)} />
-          <input placeholder="Email" value={email} onChange={(e)=>setEmail(e.target.value)} />
+          <input
+            type="text"
+            aria-label="Name"
+            placeholder="Name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+          />
+          <input
+            type="email"
+            aria-label="Email"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
           <button className="btn" type="submit">Register</button>
           {error && <p style={{ color:"red" }}>{error}</p>}
         </form>

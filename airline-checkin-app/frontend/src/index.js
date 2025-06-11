@@ -12,6 +12,7 @@ import Admin from "./pages/Admin";
 import Register from "./pages/Register";
 
 import * as serviceWorkerRegistration from './serviceWorkerRegistration';
+import CookieBanner from "./components/CookieBanner";
 
 function PrivateRoute({ element }) {
   const { token } = React.useContext(AuthContext);
@@ -25,6 +26,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <AuthProvider>
       <BrowserRouter>
+      <>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
@@ -36,8 +38,11 @@ ReactDOM.createRoot(document.getElementById("root")).render(
           />
           <Route path="/admin" element={<PrivateRoute element={<Admin />} />} />
           <Route path="*" element={<p className="container">404</p>} />
+    
           
         </Routes>
+        <CookieBanner />
+        </>
       </BrowserRouter>
     </AuthProvider>
   </React.StrictMode>
