@@ -1,0 +1,14 @@
+
+[{
+"id": "ATESTFLIGHT123",
+"origin": "LAX",
+"destination": "JFK",
+"departureTime": "2025-06-11T08:00:00Z",
+"seats": [
+    { "id": "1A", "class": "economy" },
+    { "id": "1B", "class": "economy" },
+    { "id": "2A", "class": "business" }
+]
+}
+
+]
