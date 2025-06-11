@@ -112,7 +112,7 @@ export default function SeatSelection() {
       setSeats((prev) =>
         prev.map((s) =>
           s.id === seatId
-            ? { ...s, available: false, userId: uid }     /* 🔹 ensure available === false */
+            ? { ...s, available: false, userId: uid }     /*  ensure available === false */
             : s
         )
       );
@@ -129,9 +129,9 @@ export default function SeatSelection() {
           Drag passenger → seat — flight {flightId}
         </h2>
         <button
-          className="btn"                                   /* 🔹 NEW */
-          onClick={() => setShowEncoded((v) => !v)}         /* 🔹 NEW */
-          style={{ marginBottom: "1rem" }}                  /* 🔹 NEW */
+          className="btn"                                   
+          onClick={() => setShowEncoded((v) => !v)}         
+          style={{ marginBottom: "1rem" }}                 
         >
           {showEncoded ? "Show Seat IDs" : "Show WASM Codes"}  
         </button>   

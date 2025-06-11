@@ -20,7 +20,17 @@ loadWasm().then(() => {
   console.log("✅ WASM module loaded");
 });
 
+function AdminRoute({ element }) {
+  const { token } = React.useContext(AuthContext);
+  if (!token) return <Navigate to="/login" replace />;
 
+  try {
+    const { email } = JSON.parse(atob(token.split(".")[1]));
+    return email === "admin@gmail.com" ? element : <Navigate to="/dashboard" replace />;
+  } catch {
+    return <Navigate to="/login" replace />;
+  }
+}
 function PrivateRoute({ element }) {
   const { token } = React.useContext(AuthContext);
   return token ? element : <Navigate to="/login" replace />;
@@ -40,7 +50,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
               <Route path="/register" element={<Register />} />
               <Route path="/dashboard" element={<PrivateRoute element={<Dashboard />} />} />
               <Route path="/select-seat/:flightId" element={<PrivateRoute element={<SeatSelection />} />} />
-              <Route path="/admin" element={<PrivateRoute element={<Admin />} />} />
+              <Route path="/admin" element={<AdminRoute element={<Admin />} />} />
               <Route path="*" element={<p className="container">404</p>} />
             </Routes>
             <CookieBanner />
