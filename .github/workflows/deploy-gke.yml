@@ -4,15 +4,14 @@ on:
   push:
     branches:
       - main
-  # Best practice to add empty braces for linters
   workflow_dispatch: {}
 
 jobs:
   deploy:
-    name: Build, push, deploy to GKE
+    name: Build, Push, and Deploy to GKE
     runs-on: ubuntu-latest
-    
-    # This correctly sets the working directory for all 'run' steps
+
+    # Set the working directory for all 'run' steps to your project folder
     defaults:
       run:
         working-directory: ./airline-checkin-app
@@ -21,27 +20,25 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Set up Google Cloud SDK
+    - name: Authenticate with Google Cloud
       uses: google-github-actions/setup-gcloud@v2
       with:
         project_id: ${{ secrets.GCP_PROJECT_ID }}
         service_account_key: ${{ secrets.GCP_SA_KEY }}
         export_default_credentials: true
 
-    - name: Configure Docker to use GCR
-      run: |
-        echo "${{ secrets.GCP_SA_KEY }}" | gcloud auth activate-service-account --key-file=-
-        gcloud auth configure-docker gcr.io --quiet
+    - name: Configure Docker for Artifact Registry
+      run: gcloud auth configure-docker us-west1-docker.pkg.dev
 
-    # --- FIXED: Create service account key file for backend build ---
-    - name: Create service account key file
+    # This step is crucial: it creates the serviceAccountKey.json file that
+    # your backend's Dockerfile needs to COPY during the build.
+    - name: Create Service Account Key File for Build
       run: echo '${{ secrets.GCP_SA_KEY }}' > server/serviceAccountKey.json
 
-    # Set image repo variable for easier use
+    # Set the Artifact Registry path as an environment variable for easy reuse
     - name: Set image repository variable
       run: echo "IMAGE_REPO=us-west1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/airline-app-repo" >> $GITHUB_ENV
 
-    # --- Build and push steps (redundant working-directory removed) ---
     - name: Build and Push Backend Image
       run: |
         docker build -t ${{ env.IMAGE_REPO }}/backend:latest -f server/Dockerfile .
@@ -51,25 +48,22 @@ jobs:
       run: |
         docker build -t ${{ env.IMAGE_REPO }}/frontend:latest -f frontend/Dockerfile .
         docker push ${{ env.IMAGE_REPO }}/frontend:latest
-
+        
     - name: Build and Push Redis Service Image
       run: |
         docker build -t ${{ env.IMAGE_REPO }}/redis-service:latest -f redis/Dockerfile .
         docker push ${{ env.IMAGE_REPO }}/redis-service:latest
 
-    # --- Deploy to GKE ---
     - name: Get GKE credentials
       run: gcloud container clusters get-credentials cs144 --region us-west1
 
     - name: Deploy to GKE
-      # FIXED: Removed the incorrect 'airline-checkin-app/' prefix from paths
+      # The paths are now correct because of the `working-directory` setting above
       run: |
         kubectl apply -f backend-deployment.yaml
         kubectl apply -f frontend-deployment.yaml
-        kubectl apply -f redis-service-deployment.yaml
         kubectl apply -f redis-deployment.yaml
+        kubectl apply -f redis-service-deployment.yaml
         kubectl apply -f backend-service.yaml
         kubectl apply -f frontend-service.yaml
-        kubectl apply -f redis-service-service.yaml
-        # Note: The 'redis-service.yaml' and 'redis.yaml' files might be duplicates
-        # based on your file list. Ensure you are applying the correct service files.
+        kubectl apply -f redis-service.yaml
