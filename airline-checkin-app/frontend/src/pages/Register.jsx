@@ -4,8 +4,8 @@ import { AuthContext } from "../AuthContext";
 import NavBar from "../components/NavBar";
 import { useApi } from "../utils/api";
 
-export default function Login() {
-  const [name,  setName]  = useState("");
+export default function Register() {
+  const [name, setName]   = useState("");
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
 
@@ -17,14 +17,14 @@ export default function Login() {
     e.preventDefault();
     setError("");
     try {
-      const data = await req("/api/login", {
+      const data = await req("/api/register", {
         method: "POST",
         body: JSON.stringify({ name, email }),
       });
       setToken(data.token);
       navigate("/dashboard");
     } catch (err) {
-      setError(err.error || "Login failed");
+      setError(err.error || err.message || "Registration failed");
     }
   };
 
@@ -32,17 +32,15 @@ export default function Login() {
     <>
       <NavBar />
       <main className="container" style={{ maxWidth: 420 }}>
-        <h2 style={{ fontSize: "1.5rem", fontWeight: 700, margin: "1.5rem 0" }}>
-          Log in / Check-in
-        </h2>
-        <form onSubmit={handleSubmit} style={{ display: "grid", gap: "1rem" }}>
-          <input placeholder="Name"  value={name}  onChange={(e)=>setName(e.target.value)} />
+        <h2>Create Account</h2>
+        <form onSubmit={handleSubmit} style={{ display:"grid", gap:"1rem" }}>
+          <input placeholder="Name" value={name} onChange={(e)=>setName(e.target.value)} />
           <input placeholder="Email" value={email} onChange={(e)=>setEmail(e.target.value)} />
-          <button className="btn" type="submit">Continue</button>
+          <button className="btn" type="submit">Register</button>
           {error && <p style={{ color:"red" }}>{error}</p>}
         </form>
         <p style={{marginTop:"1rem"}}>
-          Need an account? <Link to="/register">Register</Link>
+          Already registered? <Link to="/login">Log in</Link>
         </p>
       </main>
     </>

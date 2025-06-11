@@ -9,6 +9,7 @@ import SeatSelection from "./pages/SeatSelection";
 import Login from "./pages/Login";
 import AuthProvider, { AuthContext } from "./AuthContext";
 import Admin from "./pages/Admin";
+import Register from "./pages/Register";
 
 import * as serviceWorkerRegistration from './serviceWorkerRegistration';
 
@@ -27,6 +28,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
           <Route path="/dashboard" element={<PrivateRoute element={<Dashboard />} />} />
           <Route
             path="/select-seat/:flightId"

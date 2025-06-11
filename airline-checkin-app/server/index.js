@@ -64,20 +64,39 @@ app.post("/api/login", async (req, res) => {
     return res.status(400).json({ error: "name and email required" });
   }
 
-  // Look up user doc or create if missing
-  let userDoc = await db.collection("users").where("email", "==", email).limit(1).get();
-  let uid;
+   const userDoc = await db
+      .collection("users")
+      .where("email", "==", email)
+      .limit(1)
+      .get();
   if (userDoc.empty) {
-    const ref = await db.collection("users").add({ name, email });
-    uid = ref.id;
-  } else {
-    uid = userDoc.docs[0].id;
+    return res.status(401).json({ error: "User not found. Please register." });
   }
+  const uid = userDoc.docs[0].id;
 
   const token = jwt.sign({ uid, name }, process.env.JWT_SECRET, {
     expiresIn: "1d",
   });
   res.json({ token });
+});
+// POST /api/register  – create user if email not taken
+app.post("/api/register", async (req, res) => {
+  const { name, email } = req.body;
+  if (!name || !email) {
+    return res.status(400).json({ error: "name and email required" });
+  }
+
+  const snap = await db.collection("users")
+                       .where("email", "==", email)
+                       .limit(1)
+                       .get();
+  if (!snap.empty) {
+    return res.status(409).json({ error: "Email already registered" });
+  }
+
+  const ref   = await db.collection("users").add({ name, email });
+  const token = signToken({ uid: ref.id, name });
+  return res.json({ token });
 });
 
 
