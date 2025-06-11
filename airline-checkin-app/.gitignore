@@ -39,3 +39,5 @@ yarn-error.log*
 **/.cache/
 
 notes.text
+
+*.log
