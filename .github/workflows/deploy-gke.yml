@@ -30,7 +30,7 @@ jobs:
 
     - name: Configure Docker to use GCR
       run: |
-        echo "${{ secrets.GCP_SA_KEY }}" | gcloud auth activate-service-account --key-file=-
+        echo "${{ secrets.GCP_SA_KEY }}" | gcloud auth activate-service-account ${{ secrets.GCP_SA_EMAIL }} --key-file=-
         gcloud auth configure-docker gcr.io --quiet
 
     # --- FIXED: Create service account key file for backend build ---
