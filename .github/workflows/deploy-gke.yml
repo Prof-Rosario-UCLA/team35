@@ -11,6 +11,10 @@ jobs:
   deploy:
     name: Build, push, deploy to GKE
     runs-on: ubuntu-latest
+    # Working directory is from airline-checkin-app, not root
+    defaults:
+      run:
+        working-directory: ./airline-checkin-app
 
     steps:
     - name: Checkout code
