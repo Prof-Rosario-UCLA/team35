@@ -1,7 +1,6 @@
 import React, {
   createContext,
   useState,
-  useEffect,
   useCallback,
   useMemo,
 } from "react";
@@ -13,12 +12,8 @@ export const AuthContext = createContext({
 });
 
 export default function AuthProvider({ children }) {
-  const [token, setToken] = useState(() => localStorage.getItem("jwt"));
-
-  useEffect(() => {
-    if (token) localStorage.setItem("jwt", token);
-    else localStorage.removeItem("jwt");
-  }, [token]);
+  
+  const [token, setToken] = useState(null); // cookie does persistence
 
   const logout = useCallback(() => setToken(null), []);
 

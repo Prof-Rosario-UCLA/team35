@@ -40,13 +40,28 @@ app.locals.db = db;
 const SECRET     = process.env.JWT_SECRET || "dev-secret";
 const EXPIRES_IN = process.env.JWT_EXPIRES_IN || "1h";
 
+
+function setAuthCookie(res, token) {
+  const oneDay = 24 * 60 * 60 * 1000;
+  res.cookie("jwt", token, {
+    httpOnly: true,
+    sameSite: "Strict",
+    secure: process.env.NODE_ENV === "production",
+    // NO explicit path  → default is "/"
+    maxAge: oneDay,
+  });
+}
+
+
 function signToken(payload) {
   return jwt.sign(payload, SECRET, { expiresIn: EXPIRES_IN });
 }
 
 function requireAuth(req, res, next) {
-  const auth  = req.headers.authorization || "";
-  const token = auth.startsWith("Bearer ") ? auth.slice(7) : null;
+  let token = null;
+  const auth = req.headers.authorization || "";
+  if (auth.startsWith("Bearer ")) token = auth.slice(7);
+  else if (req.cookies.jwt)        token = req.cookies.jwt;
   if (!token) return res.status(401).json({ error: "No token" });
 
   try {
@@ -74,9 +89,8 @@ app.post("/api/login", async (req, res) => {
   }
   const uid = userDoc.docs[0].id;
 
-  const token = jwt.sign({ uid, name }, process.env.JWT_SECRET, {
-    expiresIn: "1d",
-  });
+  const token = signToken({ uid, name });
+  setAuthCookie(res, token);
   res.json({ token });
 });
 // POST /api/register  – create user if email not taken
@@ -96,10 +110,18 @@ app.post("/api/register", async (req, res) => {
 
   const ref   = await db.collection("users").add({ name, email });
   const token = signToken({ uid: ref.id, name });
+  setAuthCookie(res, token);
   return res.json({ token });
 });
 
-
+app.post("/api/logout", (req, res) => {
+  res.clearCookie("jwt", {
+    httpOnly: true,
+    sameSite: "Strict",
+    secure: process.env.NODE_ENV === "production",
+  });
+  return res.status(204).end();
+});
 
 // Routers (protect only if needed)
 const flightsRouter = require("./routes/flights");
