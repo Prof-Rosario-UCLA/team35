@@ -26,7 +26,7 @@ spec:
               value: "42"
             - name: redis_service
               value: http://redis-service:5000
-          image: backend
+          image: gcr.io/cs144proj/backend:latest
           name: backend
           ports:
             - containerPort: 1919

@@ -26,7 +26,7 @@ spec:
               value: http://backend:1919
             - name: redis_service
               value: http://redis-service:5000
-          image: frontend
+          image: gcr.io/cs144proj/frontend:latest
           name: frontend
           ports:
             - containerPort: 80

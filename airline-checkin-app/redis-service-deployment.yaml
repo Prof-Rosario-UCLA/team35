@@ -24,7 +24,7 @@ spec:
         - env:
             - name: REDIS_URL
               value: redis://redis:6379/0
-          image: redis-service
+          image: gcr.io/cs144proj/redis-service:latest
           name: redis-service
           ports:
             - containerPort: 5000
