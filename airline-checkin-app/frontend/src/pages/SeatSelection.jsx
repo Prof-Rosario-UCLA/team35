@@ -22,75 +22,76 @@ export default function SeatSelection() {
     }
   }
 
-  const [seats, setSeats] = useState([]); // Will hold full seat objects [{id: '1A', ...}]
+  const [seats, setSeats] = useState([]); // full seat objects [{id: '1A', ...}]
   const [selected, setSelected] = useState(null);
   const [dragging, setDragging] = useState(false);
 
-  /* --- load seat list, With Reddis --- */
-  useEffect(() => {
-  console.log('Loading seats for flight:');
-  // Helper to fetch from DB and update cache
-  const fetchFromDBAndUpdateCache = async () => {
-  try {
-    console.log('Fetching seats from DB for flight:');
-    let dbData = await req(`/flights/${flightId}/seats`);
-    setSeats(dbData);
-    for (let i = 0; i < dbData.length; i++) {
-      // Ensure each seat has an id property
-      dbData[i].class_ = dbData[i].class
-      if (!dbData[i].id) {
-        dbData[i].id = `${dbData[i].row}${dbData[i].column}`; // e.g., '1A'
+  // --- Seat normalization helper ---
+  const normalizeSeats = (dbData) => {
+    return dbData.map((seat) => {
+      seat.class_ = seat.class;
+      if (!seat.id) {
+        seat.id = `${seat.row}${seat.column}`;
       }
-      // Ensure each seat has an available property
-      if (typeof dbData[i].available === 'undefined') {
-        dbData[i].available = true; // Default to available if not set
+      if (typeof seat.available === "undefined") {
+        seat.available = true;
       }
-    }
-    console.log("Updating Redis cache with new fresh DB data...", dbData);
-    // Now update Redis cache
-    await req(`/redis/init`, {
-      method: "POST",
-      body: JSON.stringify({
-        flightId: flightId,
-        allSeats: dbData,  // depends on your dbData format!
-      }),
+      return seat;
     });
-    
-    console.log('Updated Redis cache with fresh DB data');
-  } catch (dbErr) {
-    console.error('DB fetch failed:', dbErr);
-    setSeats([]);
-  }
   };
-  // Main flow: first try Redis, then fallback to DB if needed
-  req(`/redis/free/${flightId}`)
-    .then(cachedData => {
-        // Cache hit → use cached data
-        console.log('Cache hit? ', cachedData);
-        if (!Array.isArray(cachedData) ||  cachedData.length === 0) {
-          console.log('No seats found in cache, fetching from DB');
+
+  // --- fetchFromDBAndUpdateCache ---
+  const fetchFromDBAndUpdateCache = async () => {
+    try {
+      console.log("Fetching seats from DB for flight:", flightId);
+      let dbData = await req(`/flights/${flightId}/seats`);
+      const normalizedSeats = normalizeSeats(dbData);
+      setSeats(normalizedSeats);
+
+      console.log("Updating Redis cache with new fresh DB data...", normalizedSeats);
+      await req(`/redis/init`, {
+        method: "POST",
+        body: JSON.stringify({
+          flightId: flightId,
+          allSeats: normalizedSeats,
+        }),
+      });
+      console.log("Updated Redis cache with fresh DB data");
+    } catch (dbErr) {
+      console.error("DB fetch failed:", dbErr);
+      setSeats([]);
+    }
+  };
+
+  // --- useEffect to load initial seats ---
+  useEffect(() => {
+    console.log("Loading seats for flight:", flightId);
+
+    req(`/redis/free/${flightId}`)
+      .then((cachedData) => {
+        console.log("Cache hit? ", cachedData);
+        if (!Array.isArray(cachedData) || cachedData.length === 0) {
+          console.log("No seats found in cache, fetching from DB");
           fetchFromDBAndUpdateCache();
         } else {
-          console.log('Cache hit actually found:', cachedData);
-          setSeats(cachedData);
+          console.log("Cache hit actually found:", cachedData);
+          const normalizedSeats = normalizeSeats(cachedData);
+          setSeats(normalizedSeats);
         }
-    })
-    .catch(cacheErr => {
-      if (cacheErr.error === "Flight not found") {
-        console.log('Flight not found in cache, fetching from DB:', cacheErr);
-              fetchFromDBAndUpdateCache();
-      }
-      else {
-        console.error('Cache fetch failed completely:', cacheErr);
-      }
-      // On error, fallback to DB
-    });
+      })
+      .catch((cacheErr) => {
+        if (cacheErr.error === "Flight not found") {
+          console.log("Flight not found in cache, fetching from DB:", cacheErr);
+          fetchFromDBAndUpdateCache();
+        } else {
+          console.error("Cache fetch failed completely:", cacheErr);
+        }
+      });
 
-// eslint-disable-next-line react-hooks/exhaustive-deps
-}, [flightId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [flightId]);
 
-
-  /* --- helpers --- */
+  // --- Drag and Drop helpers ---
   const onDragStart = () => setDragging(true);
   const onDragEnd = () => setDragging(false);
   const allowDrop = (e) => e.preventDefault();
@@ -107,8 +108,9 @@ export default function SeatSelection() {
         body: JSON.stringify({ uid, seatNumber: seatId }),
       });
       setSelected(seatId);
-      //fetchFromDBAndUpdateCache();
-      // update local state to reflect the change immediately
+
+      await fetchFromDBAndUpdateCache(); // reload seats after booking
+
       setSeats((prev) =>
         prev.map((s) =>
           s.id === seatId
@@ -121,6 +123,7 @@ export default function SeatSelection() {
     }
   };
 
+  // --- Render ---
   return (
     <>
       <NavBar />
@@ -154,12 +157,12 @@ export default function SeatSelection() {
         <section className="seat-grid" aria-label="Seat map">
           {seats.map((seat) => (
             <div
-              key={seat.id}  // Use seat.id
+              key={seat.id}
               className={`seat ${!seat.available ? "occupied" : ""} ${
-                selected === seat.id ? "selected" : "" // Use seat.id
+                selected === seat.id ? "selected" : ""
               }`}
               onDragOver={allowDrop}
-              onDrop={seat.available ? onDropSeat(seat.id) : undefined} // Use seat.id
+              onDrop={seat.available ? onDropSeat(seat.id) : undefined}
               aria-disabled={!seat.available}
             >
               {showEncoded
