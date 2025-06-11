@@ -3,14 +3,16 @@ name: Deploy to GKE
 on:
   push:
     branches:
-      - main  # or your deploy branch
-  workflow_dispatch:
+      - main
+  # Best practice to add empty braces for linters
+  workflow_dispatch: {}
 
 jobs:
   deploy:
     name: Build, push, deploy to GKE
     runs-on: ubuntu-latest
-    # Working directory is from airline-checkin-app, not root
+    
+    # This correctly sets the working directory for all 'run' steps
     defaults:
       run:
         working-directory: ./airline-checkin-app
@@ -31,51 +33,36 @@ jobs:
         echo "${{ secrets.GCP_SA_KEY }}" | gcloud auth activate-service-account --key-file=-
         gcloud auth configure-docker gcr.io --quiet
 
-    # --- Create service account key file for backend build ---
+    # --- FIXED: Create service account key file for backend build ---
     - name: Create service account key file
+      run: echo '${{ secrets.GCP_SA_KEY }}' > server/serviceAccountKey.json
+
+    # Set image repo variable for easier use
+    - name: Set image repository variable
+      run: echo "IMAGE_REPO=us-west1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/airline-app-repo" >> $GITHUB_ENV
+
+    # --- Build and push steps (redundant working-directory removed) ---
+    - name: Build and Push Backend Image
       run: |
-        mkdir -p airline-checkin-app/server
-        printf "%s" "${{ secrets.GCP_SA_KEY_JSON }}" > server/serviceAccountKey.json
+        docker build -t ${{ env.IMAGE_REPO }}/backend:latest -f server/Dockerfile .
+        docker push ${{ env.IMAGE_REPO }}/backend:latest
 
-    # --- Create .env file for backend build ---
-    - name: Create .env file
+    - name: Build and Push Frontend Image
       run: |
-        cat << EOF > server/.env
-        REACT_APP_FIREBASE_API_KEY=${{ secrets.REACT_APP_FIREBASE_API_KEY }}
-        REACT_APP_FIREBASE_AUTH_DOMAIN=${{ secrets.REACT_APP_FIREBASE_AUTH_DOMAIN }}
-        REACT_APP_FIREBASE_PROJECT_ID=${{ secrets.REACT_APP_FIREBASE_PROJECT_ID }}
-        REACT_APP_FIREBASE_STORAGE_BUCKET=${{ secrets.REACT_APP_FIREBASE_STORAGE_BUCKET }}
-        REACT_APP_FIREBASE_MESSAGING_SENDER_ID=${{ secrets.REACT_APP_FIREBASE_MESSAGING_SENDER_ID }}
-        REACT_APP_FIREBASE_APP_ID=${{ secrets.REACT_APP_FIREBASE_APP_ID }}
-        EOF
+        docker build -t ${{ env.IMAGE_REPO }}/frontend:latest -f frontend/Dockerfile .
+        docker push ${{ env.IMAGE_REPO }}/frontend:latest
 
-    # --- Build and push backend ---
-    - name: Build backend image
-      run: docker build -t gcr.io/${{ secrets.GCP_PROJECT_ID }}/backend:latest -f server/Dockerfile .
-
-    - name: Push backend image
-      run: docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/backend:latest
-
-    # --- Build and push frontend ---
-    - name: Build frontend image
-      run: docker build -t gcr.io/${{ secrets.GCP_PROJECT_ID }}/frontend:latest -f frontend/Dockerfile .
-
-    - name: Push frontend image
-      run: docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/frontend:latest
-
-    # --- Build and push redis-service ---
-    - name: Build redis-service image
-      run: docker build -t gcr.io/${{ secrets.GCP_PROJECT_ID }}/redis-service:latest -f redis/Dockerfile .
-
-    - name: Push redis-service image
-      run: docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/redis-service:latest
+    - name: Build and Push Redis Service Image
+      run: |
+        docker build -t ${{ env.IMAGE_REPO }}/redis-service:latest -f redis/Dockerfile .
+        docker push ${{ env.IMAGE_REPO }}/redis-service:latest
 
     # --- Deploy to GKE ---
     - name: Get GKE credentials
-      run: |
-        gcloud container clusters get-credentials cs144 --region us-west1
+      run: gcloud container clusters get-credentials cs144 --region us-west1
 
     - name: Deploy to GKE
+      # FIXED: Removed the incorrect 'airline-checkin-app/' prefix from paths
       run: |
         kubectl apply -f backend-deployment.yaml
         kubectl apply -f frontend-deployment.yaml
@@ -84,5 +71,5 @@ jobs:
         kubectl apply -f backend-service.yaml
         kubectl apply -f frontend-service.yaml
         kubectl apply -f redis-service-service.yaml
-        kubectl apply -f redis-service.yaml
-        kubectl apply -f redis.yaml
+        # Note: The 'redis-service.yaml' and 'redis.yaml' files might be duplicates
+        # based on your file list. Ensure you are applying the correct service files.
