@@ -27,10 +27,8 @@ jobs:
     - name: Set up Google Cloud SDK
       uses: google-github-actions/setup-gcloud@v2
 
-    # --- THIS IS THE NEW STEP TO FIX THE ERROR ---
-    - name: Install gke-cloud-auth-plugin
-      run: gcloud components install gke-gcloud-auth-plugin
-    # ---------------------------------------------
+    - name: Install gke-gcloud-auth-plugin
+      run: gcloud components install gke-gcloud-auth-plugin --quiet
 
     - name: Configure Docker for Artifact Registry
       run: gcloud auth configure-docker us-west1-docker.pkg.dev --quiet
@@ -45,6 +43,7 @@ jobs:
       run: |
         docker build -t ${{ env.IMAGE_REPO }}/backend:latest -f server/Dockerfile .
         docker push ${{ env.IMAGE_REPO }}/backend:latest
+
     - name: Build and Push Frontend Image
       run: |
         docker build -t ${{ env.IMAGE_REPO }}/frontend:latest -f frontend/Dockerfile frontend/
@@ -55,6 +54,7 @@ jobs:
       run: |
         docker build -t ${{ env.IMAGE_REPO }}/redis-service:latest -f redis/Dockerfile .
         docker push ${{ env.IMAGE_REPO }}/redis-service:latest
+
     - name: Get GKE credentials
       run: gcloud container clusters get-credentials cs144 --region us-west1
 
@@ -63,15 +63,7 @@ jobs:
         sed -i 's|gcr.io/cs144proj/backend:latest|${{ env.IMAGE_REPO }}/backend:latest|g' backend-deployment.yaml
         sed -i 's|gcr.io/cs144proj/frontend:latest|${{ env.IMAGE_REPO }}/frontend:latest|g' frontend-deployment.yaml
         sed -i 's|gcr.io/cs144proj/redis-service:latest|${{ env.IMAGE_REPO }}/redis-service:latest|g' redis-service-deployment.yaml
-    # - name: Deploy to GKE
-    #   run: |
-    #     kubectl apply -f backend-deployment.yaml
-    #     kubectl apply -f frontend-deployment.yaml
-    #     kubectl apply -f redis-deployment.yaml
-    #     kubectl apply -f redis-service-deployment.yaml
-    #     kubectl apply -f backend-service.yaml
-    #     kubectl apply -f frontend-service.yaml
-    #     kubectl apply -f redis-service.yaml
+
     - name: Deploy to GKE
       run: |
         # Apply Deployments First
@@ -83,8 +75,12 @@ jobs:
         # Apply Services Next
         kubectl apply -f backend-service.yaml
         kubectl apply -f redis-service.yaml
-        kubectl apply -f frontend-service.yaml  # Apply the updated frontend service
 
-        # Apply Ingress and Certificate Last
-        kubectl apply -f managed-certificate.yaml
-        kubectl apply -f ingress.yaml
+    - name: Force rollout of frontend Deployment
+      run: kubectl rollout restart deployment frontend
+
+    - name: Force rollout of backend Deployment
+      run: kubectl rollout restart deployment backend
+
+    - name: Force rollout of redis Deployment
+      run: kubectl rollout restart deployment redis
