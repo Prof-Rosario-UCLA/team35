@@ -63,12 +63,28 @@ jobs:
         sed -i 's|gcr.io/cs144proj/backend:latest|${{ env.IMAGE_REPO }}/backend:latest|g' backend-deployment.yaml
         sed -i 's|gcr.io/cs144proj/frontend:latest|${{ env.IMAGE_REPO }}/frontend:latest|g' frontend-deployment.yaml
         sed -i 's|gcr.io/cs144proj/redis-service:latest|${{ env.IMAGE_REPO }}/redis-service:latest|g' redis-service-deployment.yaml
+    # - name: Deploy to GKE
+    #   run: |
+    #     kubectl apply -f backend-deployment.yaml
+    #     kubectl apply -f frontend-deployment.yaml
+    #     kubectl apply -f redis-deployment.yaml
+    #     kubectl apply -f redis-service-deployment.yaml
+    #     kubectl apply -f backend-service.yaml
+    #     kubectl apply -f frontend-service.yaml
+    #     kubectl apply -f redis-service.yaml
     - name: Deploy to GKE
       run: |
+        # Apply Deployments First
         kubectl apply -f backend-deployment.yaml
         kubectl apply -f frontend-deployment.yaml
         kubectl apply -f redis-deployment.yaml
         kubectl apply -f redis-service-deployment.yaml
+
+        # Apply Services Next
         kubectl apply -f backend-service.yaml
-        kubectl apply -f frontend-service.yaml
         kubectl apply -f redis-service.yaml
+        kubectl apply -f frontend-service.yaml  # Apply the updated frontend service
+
+        # Apply Ingress and Certificate Last
+        kubectl apply -f managed-certificate.yaml
+        kubectl apply -f ingress.yaml

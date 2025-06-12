@@ -1,0 +1,17 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: airline-app-ingress
+  annotations:
+    # Use the static IP address you reserved
+    kubernetes.io/ingress.global-static-ip-name: "airline-app-ip"
+    # Reference the managed certificate you just defined
+    networking.gke.io/managed-certificates: "airline-app-certificate"
+    # This annotation automatically handles HTTP to HTTPS redirection
+    kubernetes.io/ingress.allow-http: "true"
+spec:
+  defaultBackend:
+    service:
+      name: frontend
+      port:
+        number: 80
