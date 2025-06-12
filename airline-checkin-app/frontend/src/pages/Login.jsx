@@ -17,12 +17,10 @@ export default function Login() {
     e.preventDefault();
     setError("");
     try {
-      console.log("Attempting login with:", { name, email });
       const data = await req("/api/login", {
         method: "POST",
         body: JSON.stringify({ name, email }),
       });
-      console.log("Login response:", data);
       setToken(data.token);
       navigate("/dashboard");
     } catch (err) {
