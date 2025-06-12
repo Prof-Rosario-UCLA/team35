@@ -135,10 +135,10 @@ const redisRouter = require("./routes/redis");
 // app.use("/checkin",  checkinRouter);
 // app.use("/redis", redisRouter);
 
-app.use("api/flights", flightsRouter); 
-app.use("api/users",   usersRouter);
-app.use("api/checkin",  checkinRouter);
-app.use("api/redis", redisRouter);
+app.use("/flights", flightsRouter); 
+app.use("/users",   usersRouter);
+app.use("/checkin",  checkinRouter);
+app.use("/redis", redisRouter);
 
 app.get("/test", async (req, res) => {
   const snapshot = await db.collection("flights").get();
