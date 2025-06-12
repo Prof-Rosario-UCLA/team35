@@ -19,13 +19,11 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    # 1. Authenticate to Google Cloud (Streamlined)
     - name: Authenticate with Google Cloud
       uses: google-github-actions/auth@v2
       with:
         credentials_json: ${{ secrets.GCP_SA_KEY }}
 
-    # 2. Set up gcloud CLI
     - name: Set up Google Cloud SDK
       uses: google-github-actions/setup-gcloud@v2
 
@@ -34,42 +32,37 @@ jobs:
       run: gcloud components install gke-gcloud-auth-plugin
     # ---------------------------------------------
 
-    # 3. Configure Docker for ARTIFACT REGISTRY
-    - name: Configure Docker
+    - name: Configure Docker for Artifact Registry
       run: gcloud auth configure-docker us-west1-docker.pkg.dev --quiet
 
-    # 4. Create serviceAccountKey.json for the backend build
     - name: Create Service Account Key File
       run: echo '${{ secrets.GCP_SA_KEY }}' > server/serviceAccountKey.json
 
-    # 5. Set the full image repository path as an environment variable
     - name: Set Image Repo Variable
       run: echo "IMAGE_REPO=us-west1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/airline-app-repo" >> $GITHUB_ENV
 
-    # 6. Build and Push all images
     - name: Build and Push Backend Image
       run: |
         docker build -t ${{ env.IMAGE_REPO }}/backend:latest -f server/Dockerfile .
         docker push ${{ env.IMAGE_REPO }}/backend:latest
     - name: Build and Push Frontend Image
       run: |
-        docker build -t ${{ env.IMAGE_REPO }}/frontend:latest ./frontend
+        docker build -t ${{ env.IMAGE_REPO }}/frontend:latest -f frontend/Dockerfile frontend/
         docker push ${{ env.IMAGE_REPO }}/frontend:latest
+        
     - name: Build and Push Redis Service Image
+      working-directory: airline-checkin-app
       run: |
         docker build -t ${{ env.IMAGE_REPO }}/redis-service:latest -f redis/Dockerfile .
         docker push ${{ env.IMAGE_REPO }}/redis-service:latest
-    # 7. Get GKE cluster credentials
     - name: Get GKE credentials
       run: gcloud container clusters get-credentials cs144 --region us-west1
 
-    # 8. NEW STEP: Replace image placeholders in Kubernetes manifests
     - name: Update Kubernetes Manifests
       run: |
         sed -i 's|gcr.io/cs144proj/backend:latest|${{ env.IMAGE_REPO }}/backend:latest|g' backend-deployment.yaml
         sed -i 's|gcr.io/cs144proj/frontend:latest|${{ env.IMAGE_REPO }}/frontend:latest|g' frontend-deployment.yaml
         sed -i 's|gcr.io/cs144proj/redis-service:latest|${{ env.IMAGE_REPO }}/redis-service:latest|g' redis-service-deployment.yaml
-    # 9. Deploy to GKE
     - name: Deploy to GKE
       run: |
         kubectl apply -f backend-deployment.yaml
