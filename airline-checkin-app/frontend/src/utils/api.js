@@ -45,7 +45,7 @@ export function useApi() {
   const req = useCallback(async (url, opts = {}) => {
     // Prepend /api to all requests. The browser will send this to your domain,
     // and the GKE Ingress will route it to the backend service.
-    const res = await fetch(`/api${url}`, {
+    const res = await fetch(`${url}`, {
       credentials: "include",
       ...opts,
       headers: {
