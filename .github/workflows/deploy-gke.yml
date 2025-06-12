@@ -76,6 +76,10 @@ jobs:
         kubectl apply -f backend-service.yaml
         kubectl apply -f redis-service.yaml
 
+        # Apply Ingress Last
+        kubectl apply -f managed-certificate.yaml
+        kubectl apply -f ingress.yaml
+
     - name: Force rollout of frontend Deployment
       run: kubectl rollout restart deployment frontend
 
