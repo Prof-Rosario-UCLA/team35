@@ -7,11 +7,11 @@ import json
 # Get the Redis URL from the environment variable.
 redis_url = os.getenv("REDIS_URL")
 
-# If the environment variable is not set, raise an error to prevent the app from starting incorrectly.
+# # If the environment variable is not set, raise an error to prevent the app from starting incorrectly.
 if not redis_url:
     raise ValueError("REDIS_URL environment variable is not set. Cannot connect to Redis.")
 
-# Connect to Redis using the provided URL.
+# # Connect to Redis using the provided URL.
 r = redis.from_url(redis_url)
 
 # Key for tracking all flight IDs
