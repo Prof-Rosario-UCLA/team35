@@ -1,0 +1,7 @@
+apiVersion: networking.gke.io/v1
+kind: ManagedCertificate
+metadata:
+  name: airline-app-certificate
+spec:
+  domains:
+    - team35.cs144.org  # <-- IMPORTANT: Replace with your actual domain name

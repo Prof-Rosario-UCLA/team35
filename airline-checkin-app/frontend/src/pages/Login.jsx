@@ -24,6 +24,7 @@ export default function Login() {
       setToken(data.token);
       navigate("/dashboard");
     } catch (err) {
+      console.error("Login error:", err);
       setError(err.error || "Login failed");
     }
   };

@@ -11,6 +11,7 @@ spec:
   selector:
     io.kompose.service: frontend
   ports:
-    - protocol: TCP
+    # Give the port a name
+    - name: "http"
       port: 80
       targetPort: 80
