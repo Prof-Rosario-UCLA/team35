@@ -47,9 +47,8 @@ jobs:
         docker push ${{ env.IMAGE_REPO }}/backend:latest
 
     - name: Build and Push Frontend Image
-      working-directory: airline-checkin-app
       run: |
-        docker build -t ${{ env.IMAGE_REPO }}/frontend:latest -f frontend/Dockerfile .
+        docker build -t ${{ env.IMAGE_REPO }}/frontend:latest -f frontend/Dockerfile frontend/
         docker push ${{ env.IMAGE_REPO }}/frontend:latest
         
     - name: Build and Push Redis Service Image
