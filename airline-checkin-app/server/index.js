@@ -10,7 +10,7 @@ const PORT  = 1919;
 
 // basic middleware
 // app.use(cors({ origin: "http://localhost:3000", credentials: true }));
-app.use(cors({ origin: "http://34.168.42.131/", credentials: true }));
+app.use(cors({ origin: "https://team35.cs144.org", credentials: true }));
 app.use(express.json());
 app.use(cookieParser());
 
@@ -135,10 +135,10 @@ const redisRouter = require("./routes/redis");
 // app.use("/checkin",  checkinRouter);
 // app.use("/redis", redisRouter);
 
-app.use("api/api/flights", flightsRouter); 
-app.use("api/api/users",   usersRouter);
-app.use("api/api/checkin",  checkinRouter);
-app.use("api/api/redis", redisRouter);
+app.use("/api/flights", flightsRouter); 
+app.use("/api/users",   usersRouter);
+app.use("/api/checkin",  checkinRouter);
+app.use("/api/redis", redisRouter);
 
 app.get("/test", async (req, res) => {
   const snapshot = await db.collection("flights").get();
