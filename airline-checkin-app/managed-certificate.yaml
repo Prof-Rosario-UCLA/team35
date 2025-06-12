@@ -4,4 +4,4 @@ metadata:
   name: airline-app-certificate
 spec:
   domains:
-    - http://team35.cs144.org/  # <-- IMPORTANT: Replace with your actual domain name
+    - team35.cs144.org  # <-- IMPORTANT: Replace with your actual domain name
