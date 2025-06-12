@@ -19,11 +19,14 @@ apiVersion: v1
 kind: Service
 metadata:
   name: frontend
+  annotations:
+    networking.gke.io/load-balancer-ip-address: 34.8.72.41  # optional if you reserved static IP
   labels:
-    app: frontend
+    io.kompose.service: frontend
 spec:
-  # Change the type to NodePort to expose it to the Ingress
-  type: NodePort
+  type: LoadBalancer
+  selector:
+    io.kompose.service: frontend
   ports:
     # Give the port a name
     - name: "http"
