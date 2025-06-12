@@ -9,26 +9,12 @@ const app   = express();
 const PORT  = 1919;
 
 // basic middleware
-app.use(cors({ origin: "http://localhost:3000", credentials: true }));
+const allowedOrigin = process.env.CORS_ORIGIN || "http://localhost:3000";
+// app.use(cors({ origin: "http://localhost:3000", credentials: true }));
+// app.use(cors({ origin: "https://team35.cs144.org", credentials: true }));
+app.use(cors({ origin: allowedOrigin, credentials: true }));
 app.use(express.json());
 app.use(cookieParser());
-
-/* migrating to firebase
-const { PrismaClient } = require("@prisma/client");
-const prisma = new PrismaClient();
-
-app.get("/api/flights", async (req, res) => {
-  try {
-    const flights = await prisma.flight.findMany({
-      include: { seats: true },
-    });
-    res.json(flights);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Could not retrieve flights" });
-  }
-});
-*/
 
 // Firebase
 const serviceAccount = require("./serviceAccountKey.json");

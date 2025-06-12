@@ -29,7 +29,7 @@ jobs:
 
     # --- THIS IS THE NEW STEP TO FIX THE ERROR ---
     - name: Install gke-cloud-auth-plugin
-      run: gcloud components install gke-gcloud-auth-plugin
+      run: gcloud components install gke-gcloud-auth-plugin --quiet
     # ---------------------------------------------
 
     - name: Configure Docker for Artifact Registry
@@ -65,10 +65,26 @@ jobs:
         sed -i 's|gcr.io/cs144proj/redis-service:latest|${{ env.IMAGE_REPO }}/redis-service:latest|g' redis-service-deployment.yaml
     - name: Deploy to GKE
       run: |
+        # Apply Deployments First
         kubectl apply -f backend-deployment.yaml
         kubectl apply -f frontend-deployment.yaml
         kubectl apply -f redis-deployment.yaml
         kubectl apply -f redis-service-deployment.yaml
+
+        # Apply Services Next
         kubectl apply -f backend-service.yaml
-        kubectl apply -f frontend-service.yaml
         kubectl apply -f redis-service.yaml
+
+        # Apply Ingress Last
+        kubectl apply -f managed-certificate.yaml
+        kubectl apply -f ingress.yaml
+      
+    - name: Force rollout of frontend Deployment
+      run: kubectl rollout restart deployment frontend
+
+    - name: Force rollout of backend Deployment
+      run: kubectl rollout restart deployment backend
+
+    - name: Force rollout of redis Deployment
+      run: kubectl rollout restart deployment redis
+
