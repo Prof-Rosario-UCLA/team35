@@ -1,16 +1,14 @@
 apiVersion: v1
 kind: Service
 metadata:
-  annotations:
-    kompose.cmd: kompose convert
-    kompose.version: 1.36.0 (ae2a39403)
-  labels:
-    io.kompose.service: frontend
   name: frontend
+  labels:
+    app: frontend
 spec:
-  ports:
-    - name: "3000"
-      port: 3000
-      targetPort: 80
+  type: LoadBalancer
   selector:
-    io.kompose.service: frontend
+    app: frontend
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
