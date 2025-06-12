@@ -1,15 +1,22 @@
 import os
 import redis
+import json
 
 # connect via REDIS_URL or localhost
-r = redis.from_url(os.getenv("REDIS_URL", "redis://localhost:6379/0"))
+# r = redis.from_url(os.getenv("REDIS_URL", "redis://localhost:6379/0"))
+# Get the Redis URL from the environment variable.
+redis_url = os.getenv("REDIS_URL")
 
+# If the environment variable is not set, raise an error to prevent the app from starting incorrectly.
+if not redis_url:
+    raise ValueError("REDIS_URL environment variable is not set. Cannot connect to Redis.")
 
+# Connect to Redis using the provided URL.
+r = redis.from_url(redis_url)
 
 # Key for tracking all flight IDs
 FLIGHTS_KEY = "flights"
 
-import json
 
 def init_flight(flight_id: str, seat_list):
     """Seed the full seats list as JSON and clear any old bookings."""

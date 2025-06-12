@@ -10,8 +10,21 @@ metadata:
     # This annotation automatically handles HTTP to HTTPS redirection
     kubernetes.io/ingress.allow-http: "true"
 spec:
-  defaultBackend:
-    service:
-      name: frontend
-      port:
-        number: 80
+  # This 'rules' section replaces the 'defaultBackend'
+  rules:
+  - http:
+      paths:
+      - path: /api/* # If the URL path starts with /api...
+        pathType: ImplementationSpecific
+        backend:
+          service:
+            name: backend  # ...route the request to your backend service
+            port:
+              number: 1919
+      - path: /* # For all other URL paths...
+        pathType: ImplementationSpecific
+        backend:
+          service:
+            name: frontend # ...route the request to your frontend service
+            port:
+              number: 80
