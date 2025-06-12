@@ -17,7 +17,7 @@ export default function Login() {
     e.preventDefault();
     setError("");
     try {
-      const data = await req("/api/login", {
+      const data = await req("/login", {
         method: "POST",
         body: JSON.stringify({ name, email }),
       });
