@@ -64,6 +64,9 @@ jobs:
         sed -i 's|gcr.io/cs144proj/frontend:latest|${{ env.IMAGE_REPO }}/frontend:latest|g' frontend-deployment.yaml
         sed -i 's|gcr.io/cs144proj/redis-service:latest|${{ env.IMAGE_REPO }}/redis-service:latest|g' redis-service-deployment.yaml
 
+    - name: Temporarily delete frontend deployment to fix state
+      run: kubectl delete deployment frontend --ignore-not-found=true
+      
     - name: Deploy to GKE
       run: |
         # Apply Deployments First
