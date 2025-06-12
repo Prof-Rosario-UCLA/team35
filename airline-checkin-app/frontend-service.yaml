@@ -1,17 +1,16 @@
+# team35/airline-checkin-app/frontend-service.yaml
 apiVersion: v1
 kind: Service
 metadata:
   name: frontend
-  annotations:
-    networking.gke.io/load-balancer-ip-address: 34.8.72.41  # optional if you reserved static IP
+  # The annotation for a static IP is not needed here; it belongs in the Ingress.
   labels:
     io.kompose.service: frontend
 spec:
-  type: LoadBalancer
+  # type: ClusterIP is the default and correct type. It can be omitted.
   selector:
     io.kompose.service: frontend
   ports:
-    # Give the port a name
     - name: "http"
       port: 80
       targetPort: 80

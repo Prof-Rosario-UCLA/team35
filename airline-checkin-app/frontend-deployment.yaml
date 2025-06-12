@@ -21,11 +21,6 @@ spec:
         io.kompose.service: frontend
     spec:
       containers:
-        - env:
-            - name: REACT_APP_API_BASE
-              value: http://backend:1919
-            - name: redis_service
-              value: http://redis-service:5000
           image: gcr.io/cs144proj/frontend:latest
           name: frontend
           ports:
